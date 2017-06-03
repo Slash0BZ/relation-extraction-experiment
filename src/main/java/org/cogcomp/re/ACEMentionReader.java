@@ -60,10 +60,10 @@ public class ACEMentionReader implements Parser
             ServerClientAnnotator annotator = new ServerClientAnnotator();
             annotator.setUrl("http://austen.cs.illinois.edu", "5800");
             annotator.setViews(ViewNames.DEPENDENCY_STANFORD);
-            BrownClusterViewGenerator bc_annotator = new BrownClusterViewGenerator("c100", BrownClusterViewGenerator.file100);
+            //BrownClusterViewGenerator bc_annotator = new BrownClusterViewGenerator("c100", BrownClusterViewGenerator.file100);
             for (TextAnnotation ta : reader) {
                 //ta.addView(pos_annotator);
-                bc_annotator.addView(ta);
+                //bc_annotator.addView(ta);
                 //annotator.addView(ta);
                 View entityView = ta.getView(ViewNames.MENTION_ACE);
                 relations.addAll(entityView.getRelations());

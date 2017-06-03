@@ -115,7 +115,7 @@ discrete{"TRUE", "FALSE"} coref_tag(Relation r) <-{
 
 discrete relation_classifier(Relation r) <-
 learn fine_relation_label
-    using lexical_features, lexical_features_bc, collocations_features, collocations_features_bc, structual_features, mention_features
+    using lexical_features, collocations_features, structual_features, mention_features
     from new ACEMentionReader("data/partition/train/0", "relation_full_bi")
     1 rounds
     with SupportVectorMachine{

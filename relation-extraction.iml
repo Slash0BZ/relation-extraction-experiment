@@ -35,8 +35,8 @@
     <orderEntry type="library" name="Maven: com.google.protobuf:protobuf-java:3.2.0" level="project" />
     <orderEntry type="library" name="Maven: com.google.protobuf:protobuf-java-util:3.2.0" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-tokenizer:3.1.19" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-pos:3.1.19" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:LBJava-NLP-tools:3.1.19" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-pos:3.0.107" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:LBJava-NLP-tools:3.0.107" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-pos-models:3.0.13" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-edison:3.1.19" level="project" />
     <orderEntry type="library" name="Maven: org.cogcomp:cogcomp-datastore:1.9.7" level="project" />

@@ -498,16 +498,16 @@ public class RelationFeatureExtractor {
         Constituent target = r.getTarget();
         Constituent sourceHead = getEntityHeadForConstituent(source, source.getTextAnnotation(), "EntityHeads");
         Constituent targetHead = getEntityHeadForConstituent(target, target.getTextAnnotation(), "EntityHeads");
-        //View mentionView = source.getTextAnnotation().getView(ViewNames.MENTION_ACE);
+        View mentionView = source.getTextAnnotation().getView(ViewNames.MENTION_ACE);
         if (target.getStartSpan() > source.getEndSpan()){
-            //List<Constituent> middle = mentionView.getConstituentsCoveringSpan(source.getEndSpan(), target.getStartSpan() - 1);
-            //ret.add("middle_mention_size_" + Integer.toString(middle.size()));
-            //ret.add("middle_word_size_" + Integer.toString(target.getStartSpan() - source.getEndSpan()));
+            List<Constituent> middle = mentionView.getConstituentsCoveringSpan(source.getEndSpan(), target.getStartSpan() - 1);
+            ret.add("middle_mention_size_" + Integer.toString(middle.size()));
+            ret.add("middle_word_size_" + Integer.toString(target.getStartSpan() - source.getEndSpan()));
         }
         if (source.getStartSpan() > target.getEndSpan()){
-            //List<Constituent> middle = mentionView.getConstituentsCoveringSpan(target.getEndSpan(), source.getStartSpan() - 1);
-            //ret.add("middle_mention_size_" + Integer.toString(middle.size()));
-            //ret.add("middle_word_size_" + Integer.toString(source.getStartSpan() - target.getEndSpan()));
+            List<Constituent> middle = mentionView.getConstituentsCoveringSpan(target.getEndSpan(), source.getStartSpan() - 1);
+            ret.add("middle_mention_size_" + Integer.toString(middle.size()));
+            ret.add("middle_word_size_" + Integer.toString(source.getStartSpan() - target.getEndSpan()));
         }
         if (source.doesConstituentCover(target)){
             ret.add("m2_in_m1");
