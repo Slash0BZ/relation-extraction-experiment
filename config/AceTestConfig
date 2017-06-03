@@ -1,0 +1,5 @@
+CorefThreshold = -6
+AnnotationFormat = Ace
+TUNE = FALSE
+OutputFormat = BCub
+UseGoldMentions = true

@@ -1,0 +1,60 @@
+package org.cogcomp.re;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
+
+discrete entity_type(Constituent c) <- {
+    return c.getAttribute("EntityType");
+}
+
+discrete entity_subtype(Constituent c) <- {
+    return c.getAttribute("EntitySubtype");
+}
+
+discrete% entity_level_features(Constituent c) <- {
+    String featureVec = c.getAttribute("EntityMentionType");
+    sense featureVec;
+}
+
+discrete% word_features(Constituent c) <- {
+    sense c.toString();
+}
+
+discrete% offset_features(Constituent c) <- {
+    sense c.getStartSpan();
+    sense c.getEndSpan();
+}
+
+discrete% bow_features(Constituent c) <- {
+    for (int i = c.getStartSpan(); i < c.getEndSpan(); i++){
+        sense c.getTextAnnotation().getToken(i);
+    }
+}
+
+discrete% additional_features(Constituent c) <- {
+    if (c.getStartSpan() > 0){
+        sense c.getTextAnnotation().getToken(c.getStartSpan() - 1);
+    }
+}
+
+discrete entity_type_classifier(Constituent c) <-
+learn entity_type
+    using entity_level_features, word_features, offset_features, bow_features
+    from new ACEMentionReader("data/original", "entity")
+    10 rounds
+    with SupportVectorMachine{
+
+    }
+    testFrom new ACEMentionReader("data/original", "entity")
+    progressOutput 20000
+end
+
+discrete entity_subtype_classifier(Constituent c) <-
+learn entity_subtype
+    using entity_level_features, word_features, offset_features, bow_features, additional_features
+    from new ACEMentionReader("data/original", "entity")
+    10 rounds
+    with SupportVectorMachine{
+
+    }
+    testFrom new ACEMentionReader("data/original", "entity")
+    progressOutput 20000
+end

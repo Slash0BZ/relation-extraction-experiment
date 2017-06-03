@@ -1,0 +1,5 @@
+jwnlConfigFile	config/jwnl_properties.xml
+lemmaCacheFile  data/lemmaCache.txt
+updateLemmaCacheFile    true
+maxLemmaCacheEntries    100
+wordnetPath /shared/trollope/curator/dist/data/WordNet

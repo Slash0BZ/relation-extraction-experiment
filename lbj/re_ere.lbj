@@ -1,0 +1,29 @@
+package org.cogcomp.re;
+import edu.illinois.cs.cogcomp.nlp.corpusreaders.ereReader
+import java.util.List;
+import java.lang.*;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
+import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
+import edu.illinois.cs.cogcomp.infer.ilp.OJalgoHook;
+
+discrete relation_classifier(Relation r) <-
+learn relation_label
+    using lexical_features
+    from new ACEMentionReader("data/partition/train/0", "relation_full_bi")
+    10 rounds
+    with SparseNetworkLearner{
+
+        SparseAveragedPerceptron.Parameters p = new SparseAveragedPerceptron.Parameters();
+        p.learningRate = 0.1;
+        p.weightVector = new SparseAveragedPerceptron.AveragedWeightVector();
+        p.initialWeight = 0.0;
+        p.threshold = 0;
+        p.thickness = 0;
+        p.positiveThickness = 0;
+        p.negativeThickness = 0;
+        baseLTU = new SparseAveragedPerceptron(p);
+    }
+    testFrom new ACEMentionReader("data/partition/eval/0", "relation_full_bi")
+    progressOutput 20000
+end
+
