@@ -32,11 +32,13 @@ public class ACEMentionReader implements Parser
     private List<Relation> relations_full;
     private List<Relation> relations_full_trim;
     private List<Relation> relations_full_bi;
+    private List<Relation> relations_bi;
     private int currentRelationIndex;
     private int currentEntityIndex;
     private int currentRelationFullIndex;
     private int currentRelationFullTrimIndex;
     private int currentRelationFullBiIndex;
+    private int currentRelationBiIndex;
     private String readType = "NULL";
     private double trim_factor = 0.5;
 
@@ -53,6 +55,7 @@ public class ACEMentionReader implements Parser
         relations_full = new ArrayList<Relation>();
         relations_full_trim = new ArrayList<Relation>();
         relations_full_bi = new ArrayList<Relation>();
+        relations_bi = new ArrayList<Relation>();
         try {
             ACEReader reader = new ACEReader(file, false);
             POSAnnotator pos_annotator = new POSAnnotator();
@@ -60,10 +63,10 @@ public class ACEMentionReader implements Parser
             ServerClientAnnotator annotator = new ServerClientAnnotator();
             annotator.setUrl("http://austen.cs.illinois.edu", "5800");
             annotator.setViews(ViewNames.DEPENDENCY_STANFORD);
-            //BrownClusterViewGenerator bc_annotator = new BrownClusterViewGenerator("c100", BrownClusterViewGenerator.file100);
+            BrownClusterViewGenerator bc_annotator = new BrownClusterViewGenerator("c100", BrownClusterViewGenerator.file100);
             for (TextAnnotation ta : reader) {
-                //ta.addView(pos_annotator);
-                //bc_annotator.addView(ta);
+                ta.addView(pos_annotator);
+                bc_annotator.addView(ta);
                 //annotator.addView(ta);
                 View entityView = ta.getView(ViewNames.MENTION_ACE);
                 relations.addAll(entityView.getRelations());
@@ -97,6 +100,8 @@ public class ACEMentionReader implements Parser
                                     opdir.addAttribute("RelationType", r.getAttribute("RelationType"));
                                     relations_full_bi.add(r);
                                     relations_full_bi.add(opdir);
+                                    relations_bi.add(r);
+                                    relations_bi.add(opdir);
                                     relations_full_trim.add(opdir);
                                     break;
                                 }
@@ -110,6 +115,8 @@ public class ACEMentionReader implements Parser
                                     opdir.addAttribute("RelationType", r.getAttribute("RelationType"));
                                     relations_full_bi.add(r);
                                     relations_full_bi.add(opdir);
+                                    relations_bi.add(r);
+                                    relations_bi.add(opdir);
                                     relations_full_trim.add(opdir);
                                     break;
                                 }
@@ -118,13 +125,13 @@ public class ACEMentionReader implements Parser
                                 Relation newRelation = new Relation("NOT_RELATED", firstArg, secondArg, 1.0f);
                                 newRelation.addAttribute("RelationSubtype", "NOT_RELATED");
                                 newRelation.addAttribute("RelationType", "NOT_RELATED");
-                                relations_full.add(newRelation);
+                                //relations_full.add(newRelation);
                             }
                             if (!found_as_target){
                                 Relation newRelation = new Relation("NOT_RELATED", secondArg, firstArg, 1.0f);
                                 newRelation.addAttribute("RelationSubtype", "NOT_RELATED");
                                 newRelation.addAttribute("RelationType", "NOT_RELATED");
-                                relations_full.add(newRelation);
+                                //relations_full.add(newRelation);
                             }
                             if (!found_as_source && !found_as_target){
                                 Relation newRelation_1 = new Relation("NOT_RELATED", firstArg, secondArg, 1.0f);
@@ -133,6 +140,8 @@ public class ACEMentionReader implements Parser
                                 Relation newRelation_2 = new Relation("NOT_RELATED", secondArg, firstArg, 1.0f);
                                 newRelation_2.addAttribute("RelationSubtype", "NOT_RELATED");
                                 newRelation_2.addAttribute("RelationType", "NOT_RELATED");
+                                relations_full.add(newRelation_1);
+                                relations_full.add(newRelation_2);
                                 relations_full_bi.add(newRelation_1);
                                 if (rand.nextDouble() < trim_factor) {
                                     relations_full_trim.add(newRelation_1);
@@ -197,6 +206,15 @@ public class ACEMentionReader implements Parser
                 return relations_full_bi.get(currentRelationFullBiIndex - 1);
             }
         }
+        if (readType == "relation_bi"){
+            if (currentRelationBiIndex == relations_bi.size()){
+                return null;
+            }
+            else{
+                currentRelationBiIndex ++;
+                return relations_bi.get(currentRelationBiIndex - 1);
+            }
+        }
         else{
             return null;
         }
@@ -208,6 +226,7 @@ public class ACEMentionReader implements Parser
         currentRelationFullIndex = 0;
         currentRelationFullTrimIndex = 0;
         currentRelationFullBiIndex = 0;
+        currentRelationBiIndex = 0;
     }
 
 }

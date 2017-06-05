@@ -1,4 +1,5 @@
 package org.cogcomp.re;
+import com.sun.org.apache.regexp.internal.RE;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ereReader.EREDocumentReader;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ereReader.EREMentionRelationReader;
@@ -56,7 +57,7 @@ public class EREComparator {
             e.printStackTrace();
         }
 
-        RelationAnnotator ra = new RelationAnnotator();
+        //RelationAnnotator ra = new RelationAnnotator();
         int total_match = 0;
         int total_type_match = 0;
         int total_predicted = 0;
@@ -67,27 +68,37 @@ public class EREComparator {
             //TextAnnotation ta = xta.getTextAnnotation();
             //System.out.println(ta.getId());
             try {
-                ra.addView(ta);
+                //ra.addView(ta);
             }
             catch (Exception e){
                 e.printStackTrace();
             }
-            List<Relation> predictedRelations = ta.getView("RELATION_EXTRACTION_RELATIONS").getRelations();
+            //List<Relation> predictedRelations = ta.getView("RELATION_EXTRACTION_RELATIONS").getRelations();
             List<Relation> goldRelations = ta.getView(ViewNames.MENTION_ACE).getRelations();
             //System.out.println("Predicted Relations");
-            for (Relation r : predictedRelations){
+            //for (Relation r : predictedRelations){
                 //System.out.println("[Source:] " + r.getSource().toString() + " [Target:] " + r.getTarget().toString() + " [Tag:] " + r.getRelationName());
-            }
+            //}
             //System.out.println("Gold Relations");
+            int far_relations_count = 0;
             for (Relation r : goldRelations) {
                 if (r.getAttribute("RelationSubtype").equals("Subsidiary")) {
+                    //System.out.println("[Source:] " + r.getSource().toString() + " [Target:] " + r.getTarget().toString() + " [Tag]: " + r.getAttribute("RelationSubtype"));
+                }
+                if (r.getSource().getStartSpan() > r.getTarget().getEndSpan() || r.getTarget().getStartSpan() > r.getSource().getEndSpan()){
+                    far_relations_count ++;
+                }
+            }
+            if (ta.getId().equals("nw/AFP_ENG_20030425.0408.apf.xml")){
+                System.out.println(ta.getId());
+                for (Relation r : goldRelations){
                     System.out.println("[Source:] " + r.getSource().toString() + " [Target:] " + r.getTarget().toString() + " [Tag]: " + r.getAttribute("RelationSubtype"));
                 }
             }
             total_labeled += goldRelations.size();
-            total_predicted += predictedRelations.size();
+            //total_predicted += predictedRelations.size();
             int match = 0;
-            int type_match = 0;
+            int type_match = 0;/*
             for (Relation r : predictedRelations){
                 Constituent psh = getEntityHeadForConstituent(r.getSource(), ta, "PRTEST");
                 Constituent peh = getEntityHeadForConstituent(r.getTarget(), ta, "PRTEST");
@@ -113,6 +124,7 @@ public class EREComparator {
             }
             total_match += match;
             total_type_match += type_match;
+            */
             /*
             System.out.println("Total labeled: " + total_labeled);
             System.out.println("Total predicted: " + total_predicted);

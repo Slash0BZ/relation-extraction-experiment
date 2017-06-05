@@ -18,7 +18,7 @@ import org.cogcomp.re.RelationAnnotator;
 public class RelationAnnotatorTester {
     public static void main(String[] args){
         try {
-            ACEReader aceReader = new ACEReader("data/onedoc", false);
+            ACEReader aceReader = new ACEReader("data/original", false);
             RelationAnnotator relationAnnotator = new RelationAnnotator();
             ServerClientAnnotator annotator = new ServerClientAnnotator();
             annotator.setUrl("http://austen.cs.illinois.edu", "3283");

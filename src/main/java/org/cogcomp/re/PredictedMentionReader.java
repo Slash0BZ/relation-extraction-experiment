@@ -1,5 +1,6 @@
 package org.cogcomp.re;
 import com.sun.org.apache.regexp.internal.RE;
+import edu.illinois.cs.cogcomp.lbj.coref.main.AllTest;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
@@ -16,6 +17,12 @@ import java.lang.*;
 public class PredictedMentionReader implements Parser{
     private List<Relation> relations;
     private int currentRelationIndex;
+    public String getOppoName(String name){
+        if (name.equals("Family") || name.equals("Lasting-Personal") || name.equals("Near") || name.equals("Business")){
+            return name;
+        }
+        return name + "_OP";
+    }
     private static Constituent getEntityHeadForConstituent(Constituent extentConstituent,
                                                            TextAnnotation textAnnotation,
                                                            String viewName) {
@@ -37,6 +44,7 @@ public class PredictedMentionReader implements Parser{
         }
         return null;
     }
+    /*
     public PredictedMentionReader(String path){
         relations = new ArrayList<Relation>();
         try {
@@ -146,6 +154,77 @@ public class PredictedMentionReader implements Parser{
         }
 
     }
+    */
+
+    public PredictedMentionReader(String path){
+        relations = new ArrayList<Relation>();
+        try {
+            ACEReader aceReader = new ACEReader(path, false);
+            entity_type_classifier etc = new entity_type_classifier();
+            entity_subtype_classifier esc = new entity_subtype_classifier();
+            for (TextAnnotation ta : aceReader){
+                View predictedView = new SpanLabelView("RELATION_EXTRACTION_RELATIONS", RelationAnnotator.class.getCanonicalName(), ta, 1.0f, true);
+                View entityView = ta.getView(ViewNames.MENTION_ACE);
+                List<Constituent> gold_mentions = entityView.getConstituents();
+                List<Constituent> predicted_mentions = AllTest.MentionTest(ta);
+                for (Constituent c : predicted_mentions){
+                    String entity_type = etc.discreteValue(c);
+                    String entity_subtype = esc.discreteValue(c);
+                    c.addAttribute("EntityType", entity_type);
+                    c.addAttribute("EntitySubtype", entity_subtype);
+                    predictedView.addConstituent(c);
+                }
+                List<Relation> gold_relations = entityView.getRelations();
+                for (int i = 0; i < ta.getNumberOfSentences(); i++){
+                    Sentence curSentence = ta.getSentence(i);
+                    List<Constituent> in_cur_sentence = predictedView.getConstituentsCoveringSpan(curSentence.getStartSpan(), curSentence.getEndSpan());
+                    for (int j = 0; j < in_cur_sentence.size(); j++){
+                        for (int k = 0; k < in_cur_sentence.size(); k++){
+                            if (j == k){
+                                continue;
+                            }
+                            Constituent source = in_cur_sentence.get(j);
+                            Constituent target = in_cur_sentence.get(k);
+                            boolean found_tag = false;
+                            for (Relation r : gold_relations){
+                                Constituent gold_source_head = getEntityHeadForConstituent(r.getSource(), ta, "EntityGoldHeads");
+                                Constituent gold_target_head = getEntityHeadForConstituent(r.getTarget(), ta, "EntityGoldHeads");
+                                Constituent predicted_source_head = getEntityHeadForConstituent(source, ta, "EntityPredictedHeads");
+                                Constituent predicted_target_head = getEntityHeadForConstituent(target, ta, "EntityPredictedHeads");
+                                if (gold_source_head.getStartSpan() == predicted_source_head.getStartSpan()
+                                        && gold_source_head.getEndSpan() == predicted_source_head.getEndSpan()
+                                        && gold_target_head.getStartSpan() == predicted_target_head.getStartSpan()
+                                        && gold_target_head.getEndSpan() == predicted_target_head.getEndSpan()){
+
+                                    Relation newRelation = new Relation(r.getAttribute("RelationSubtype"), source, target, 1.0f);
+                                    newRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
+                                    newRelation.addAttribute("RelationSubtype", r.getAttribute("RelationSubtype"));
+                                    String opTypeName = getOppoName(r.getAttribute("RelationSubtype"));
+                                    Relation newOpRelation = new Relation(opTypeName, target, source, 1.0f);
+                                    newOpRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
+                                    newOpRelation.addAttribute("RelationSubtype", opTypeName);
+                                    relations.add(newRelation);
+                                    relations.add(newOpRelation);
+                                    found_tag = true;
+                                    break;
+                                }
+                            }
+                            if (!found_tag){
+                                Relation newRelation = new Relation("NOT_RELATED", source, target, 1.0f);
+                                newRelation.addAttribute("RelationType", "NOT_RELATED");
+                                newRelation.addAttribute("RelationSubtype", "NOT_RELATED");
+                                //relations.add(newRelation);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
     public void close(){
 
     }

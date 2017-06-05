@@ -80,7 +80,6 @@ public class AllTest {
 		Doc doc_test = loader.loadDoc(ta);
 		List<Constituent> ret = new ArrayList<Constituent>();
 		for (Mention m: doc_test.getMentions()) {
-
 			int extentStart = m.getExtentFirstWordNum();
 			int extentEnd = m.getExtentLastWordNum() + 1;
 			int headCharStart = ta.getTokenCharacterOffset(m.getHeadFirstWordNum()).getFirst();
