@@ -39,30 +39,39 @@ discrete {"null", "not_null"} is_null_label(Relation r) <-{
 }
 discrete% lexical_features(Relation r) <- {
     RelationFeatureExtractor rfe = new RelationFeatureExtractor();
-    List features = rfe.getLexicalFeature(r);
-    for (int i = 0; i < features.size(); i++){
-        sense features.get(i);
+    List featuresA = rfe.getLexicalFeaturePartA(r);
+    for (int i = 0; i < featuresA.size(); i++){
+        sense "A" : featuresA.get(i);
     }
-}
-discrete% lexical_features_bc(Relation r) <- {
-    RelationFeatureExtractor rfe = new RelationFeatureExtractor();
-    List features = rfe.getLexicalFeature_BC(r);
-    for (int i = 0; i < features.size(); i++){
-        sense features.get(i);
+    List featuresB = rfe.getLexicalFeaturePartB(r);
+    for (int i = 0; i < featuresB.size(); i++){
+        sense "B" : featuresB.get(i);
+    }
+    List featuresC = rfe.getLexicalFeaturePartC(r);
+    for (int i = 0; i < featuresC.size(); i++){
+        sense "C" : featuresC.get(i);
+    }
+    List featuresCC = rfe.getLexicalFeaturePartCC(r);
+    for (int i = 0; i < featuresCC.size(); i++){
+        sense "CC" : featuresCC.get(i);
+    }
+    List featuresD = rfe.getLexicalFeaturePartD(r);
+    for (int i = 0; i < featuresD.size(); i++){
+        sense "D" : featuresD.get(i);
+    }
+    List featuresE = rfe.getLexicalFeaturePartE(r);
+    for (int i = 0; i < featuresE.size(); i++){
+        sense "E" : featuresE.get(i);
+    }
+    List featuresF = rfe.getLexicalFeaturePartF(r);
+    for (int i = 0; i < featuresF.size(); i++){
+        sense "F" : featuresF.get(i);
     }
 }
 
 discrete% collocations_features(Relation r) <- {
     RelationFeatureExtractor rfe = new RelationFeatureExtractor();
     List features = rfe.getCollocationsFeature(r);
-    for (int i = 0; i < features.size(); i++){
-        sense features.get(i);
-    }
-}
-
-discrete% collocations_features_bc(Relation r) <- {
-    RelationFeatureExtractor rfe = new RelationFeatureExtractor();
-    List features = rfe.getCollocationsFeature_BC(r);
     for (int i = 0; i < features.size(); i++){
         sense features.get(i);
     }
@@ -96,7 +105,7 @@ discrete% pos_features(Relation r) <- {
     RelationFeatureExtractor rfe = new RelationFeatureExtractor();
     List features = rfe.getPOSFeature(r);
     for (int i = 0; i < features.size(); i++){
-        sense features.get(i);
+        sense "P" : features.get(i);
     }
 }
 

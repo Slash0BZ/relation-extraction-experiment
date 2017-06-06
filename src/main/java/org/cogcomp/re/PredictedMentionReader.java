@@ -9,9 +9,7 @@ import edu.illinois.cs.cogcomp.pipeline.server.ServerClientAnnotator;
 //import edu.illinois.cs.cogcomp.pos.*;
 import edu.illinois.cs.cogcomp.edison.annotators.*;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
 import java.lang.*;
 
 public class PredictedMentionReader implements Parser{
@@ -174,15 +172,79 @@ public class PredictedMentionReader implements Parser{
                     c.addAttribute("EntitySubtype", entity_subtype);
                     predictedView.addConstituent(c);
                 }
+                Map<Constituent, Constituent> consMap = new HashMap<Constituent, Constituent>();
                 List<Relation> gold_relations = entityView.getRelations();
+                for (Constituent c : ta.getView(ViewNames.MENTION_ACE).getConstituents()){
+                    consMap.put(c,null);
+                    for (Constituent pc : predictedView.getConstituents()){
+                        Constituent ch = getEntityHeadForConstituent(c, ta, "TESTG");
+                        Constituent pch = getEntityHeadForConstituent(pc, ta, "TESTP");
+                        if (ch.getStartSpan() == pch.getStartSpan() && ch.getEndSpan() == pch.getEndSpan()){
+                            consMap.put(c, pc);
+                            break;
+                        }
+                    }
+                }
+                /*
+                for (int i = 0; i < ta.getNumberOfSentences(); i++){
+                    Sentence curSentence = ta.getSentence(i);
+                    List<Constituent> in_cur_sentence = entityView.getConstituentsCoveringSpan(curSentence.getStartSpan(), curSentence.getEndSpan());
+                    for (int j = 0; j < in_cur_sentence.size(); j++){
+                        for (int k = j + 1; k < in_cur_sentence.size(); k++){
+                            Constituent source = in_cur_sentence.get(j);
+                            Constituent target = in_cur_sentence.get(k);
+                            Constituent source_predicted = consMap.get(source);
+                            Constituent target_predicted = consMap.get(target);
+                            if (source_predicted != null && target_predicted != null){
+                                boolean found = false;
+                                for (Relation r : gold_relations){
+                                    if (r.getSource().equals(source) && r.getTarget().equals(target)){
+                                        Relation newRelation = new Relation(r.getAttribute("RelationSubtype"), source_predicted, target_predicted, 1.0f);
+                                        newRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
+                                        newRelation.addAttribute("RelationSubtype", r.getAttribute("RelationSubtype"));
+                                        String opTypeName = getOppoName(r.getAttribute("RelationSubtype"));
+                                        Relation newOpRelation = new Relation(opTypeName, target_predicted, source_predicted, 1.0f);
+                                        newOpRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
+                                        newOpRelation.addAttribute("RelationSubtype", opTypeName);
+                                        relations.add(newRelation);
+                                        relations.add(newOpRelation);
+                                        found = true;
+                                        break;
+                                    }
+                                    else if (r.getSource().equals(target) && r.getTarget().equals(source)){
+                                        Relation newRelation = new Relation(r.getAttribute("RelationSubtype"), target_predicted, source_predicted, 1.0f);
+                                        newRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
+                                        newRelation.addAttribute("RelationSubtype", r.getAttribute("RelationSubtype"));
+                                        String opTypeName = getOppoName(r.getAttribute("RelationSubtype"));
+                                        Relation newOpRelation = new Relation(opTypeName, source_predicted, target_predicted, 1.0f);
+                                        newOpRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
+                                        newOpRelation.addAttribute("RelationSubtype", opTypeName);
+                                        relations.add(newRelation);
+                                        relations.add(newOpRelation);
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found){
+                                    Relation newRelation = new Relation("NOT_RELATED", source_predicted, target_predicted, 1.0f);
+                                    newRelation.addAttribute("RelationType", "NOT_RELATED");
+                                    newRelation.addAttribute("RelationSubtype", "NOT_RELATED");
+                                    relations.add(newRelation);
+                                    Relation newRelationOp = new Relation("NOT_RELATED", target_predicted, source_predicted, 1.0f);
+                                    newRelationOp.addAttribute("RelationType", "NOT_RELATED");
+                                    newRelationOp.addAttribute("RelationSubtype", "NOT_RELATED");
+                                    relations.add(newRelationOp);
+                                }
+                            }
+                        }
+                    }
+                }
+                */
                 for (int i = 0; i < ta.getNumberOfSentences(); i++){
                     Sentence curSentence = ta.getSentence(i);
                     List<Constituent> in_cur_sentence = predictedView.getConstituentsCoveringSpan(curSentence.getStartSpan(), curSentence.getEndSpan());
                     for (int j = 0; j < in_cur_sentence.size(); j++){
-                        for (int k = 0; k < in_cur_sentence.size(); k++){
-                            if (j == k){
-                                continue;
-                            }
+                        for (int k = j + 1; k < in_cur_sentence.size(); k++){
                             Constituent source = in_cur_sentence.get(j);
                             Constituent target = in_cur_sentence.get(k);
                             boolean found_tag = false;
@@ -195,16 +257,31 @@ public class PredictedMentionReader implements Parser{
                                         && gold_source_head.getEndSpan() == predicted_source_head.getEndSpan()
                                         && gold_target_head.getStartSpan() == predicted_target_head.getStartSpan()
                                         && gold_target_head.getEndSpan() == predicted_target_head.getEndSpan()){
-
                                     Relation newRelation = new Relation(r.getAttribute("RelationSubtype"), source, target, 1.0f);
                                     newRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
                                     newRelation.addAttribute("RelationSubtype", r.getAttribute("RelationSubtype"));
                                     String opTypeName = getOppoName(r.getAttribute("RelationSubtype"));
                                     Relation newOpRelation = new Relation(opTypeName, target, source, 1.0f);
-                                    newOpRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
+                                    newOpRelation.addAttribute("RelationType", r.getAttribute("RelationType") + "_OP");
                                     newOpRelation.addAttribute("RelationSubtype", opTypeName);
                                     relations.add(newRelation);
-                                    relations.add(newOpRelation);
+                                    //relations.add(newOpRelation);
+                                    found_tag = true;
+                                    break;
+                                }
+                                else if (gold_target_head.getStartSpan() == predicted_source_head.getStartSpan()
+                                        && gold_target_head.getEndSpan() == predicted_source_head.getEndSpan()
+                                        && gold_source_head.getStartSpan() == predicted_target_head.getStartSpan()
+                                        && gold_source_head.getEndSpan() == predicted_target_head.getEndSpan()){
+                                    Relation newRelation = new Relation(r.getAttribute("RelationSubtype"), target, source, 1.0f);
+                                    newRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
+                                    newRelation.addAttribute("RelationSubtype", r.getAttribute("RelationSubtype"));
+                                    String opTypeName = getOppoName(r.getAttribute("RelationSubtype"));
+                                    Relation newOpRelation = new Relation(opTypeName, source, target, 1.0f);
+                                    newOpRelation.addAttribute("RelationType", r.getAttribute("RelationType") + "_OP");
+                                    newOpRelation.addAttribute("RelationSubtype", opTypeName);
+                                    relations.add(newRelation);
+                                    //relations.add(newOpRelation);
                                     found_tag = true;
                                     break;
                                 }
@@ -213,11 +290,16 @@ public class PredictedMentionReader implements Parser{
                                 Relation newRelation = new Relation("NOT_RELATED", source, target, 1.0f);
                                 newRelation.addAttribute("RelationType", "NOT_RELATED");
                                 newRelation.addAttribute("RelationSubtype", "NOT_RELATED");
-                                //relations.add(newRelation);
+                                Relation newRelationOp = new Relation("NOT_RELATED", target, source, 1.0f);
+                                newRelationOp.addAttribute("RelationType", "NOT_RELATED");
+                                newRelationOp.addAttribute("RelationSubtype", "NOT_RELATED");
+                                relations.add(newRelation);
+                                relations.add(newRelationOp);
                             }
                         }
                     }
                 }
+
             }
         }
         catch (Exception e){

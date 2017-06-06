@@ -61,12 +61,12 @@ public class ACEMentionReader implements Parser
             POSAnnotator pos_annotator = new POSAnnotator();
 
             ServerClientAnnotator annotator = new ServerClientAnnotator();
-            annotator.setUrl("http://austen.cs.illinois.edu", "5800");
-            annotator.setViews(ViewNames.DEPENDENCY_STANFORD);
-            BrownClusterViewGenerator bc_annotator = new BrownClusterViewGenerator("c100", BrownClusterViewGenerator.file100);
+            annotator.setUrl("http://localhost", "8080");
+            annotator.setViews(ViewNames.DEPENDENCY);
+            //BrownClusterViewGenerator bc_annotator = new BrownClusterViewGenerator("c100", BrownClusterViewGenerator.file100);
             for (TextAnnotation ta : reader) {
                 ta.addView(pos_annotator);
-                bc_annotator.addView(ta);
+                //bc_annotator.addView(ta);
                 //annotator.addView(ta);
                 View entityView = ta.getView(ViewNames.MENTION_ACE);
                 relations.addAll(entityView.getRelations());
@@ -92,12 +92,15 @@ public class ACEMentionReader implements Parser
                                 */
                                 if (r.getSource() == firstArg && r.getTarget() == secondArg){
                                     relations_full.add(r);
+                                    Relation opdirNeg = new Relation("NOT_RELATED", secondArg, firstArg, 1.0f);
+                                    opdirNeg.addAttribute("RelationType", "NOT_RELATED");
+                                    relations_full.add(opdirNeg);
                                     relations_full_trim.add(r);
                                     found_as_source = true;
                                     String opTypeName = getOppoName(r.getAttribute("RelationSubtype"));
                                     Relation opdir = new Relation(opTypeName, secondArg, firstArg, 1.0f);
                                     opdir.addAttribute("RelationSubtype", opTypeName);
-                                    opdir.addAttribute("RelationType", r.getAttribute("RelationType"));
+                                    opdir.addAttribute("RelationType", r.getAttribute("RelationType") + "_OP");
                                     relations_full_bi.add(r);
                                     relations_full_bi.add(opdir);
                                     relations_bi.add(r);
@@ -107,12 +110,15 @@ public class ACEMentionReader implements Parser
                                 }
                                 if (r.getTarget() == firstArg && r.getSource() == secondArg){
                                     relations_full.add(r);
+                                    Relation opdirNeg = new Relation("NOT_RELATED", firstArg, secondArg, 1.0f);
+                                    opdirNeg.addAttribute("RelationType", "NOT_RELATED");
+                                    relations_full.add(opdirNeg);
                                     relations_full_trim.add(r);
                                     found_as_target = true;
                                     String opTypeName = getOppoName(r.getAttribute("RelationSubtype"));
                                     Relation opdir = new Relation(opTypeName, firstArg, secondArg, 1.0f);
                                     opdir.addAttribute("RelationSubtype", opTypeName);
-                                    opdir.addAttribute("RelationType", r.getAttribute("RelationType"));
+                                    opdir.addAttribute("RelationType", r.getAttribute("RelationType") + "_OP");
                                     relations_full_bi.add(r);
                                     relations_full_bi.add(opdir);
                                     relations_bi.add(r);

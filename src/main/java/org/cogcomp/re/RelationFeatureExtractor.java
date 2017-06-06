@@ -55,31 +55,65 @@ public class RelationFeatureExtractor {
         return null;
     }
 
-    /*
-     * getLexicalFeature
-     * This function extracts the lexical feature set defined at
-     * http://cogcomp.cs.illinois.edu/papers/ChanRo10.pdf Table 1
-     */
-    public List<String> getLexicalFeature(Relation r){
+
+    public List<String> getLexicalFeaturePartA(Relation r){
+        List<String> ret_features = new ArrayList<String>();
+        Constituent source = r.getSource();
+        TextAnnotation ta = source.getTextAnnotation();
+        for (int i = source.getStartSpan(); i < source.getEndSpan(); i++){
+            ret_features.add(source.getTextAnnotation().getToken(i));
+            //ret_features.add("BC_" + getBrownClusterLabel(ta, i));
+        }
+        return ret_features;
+    }
+    public List<String> getLexicalFeaturePartB(Relation r){
+        List<String> ret_features = new ArrayList<String>();
+        Constituent target = r.getTarget();
+        TextAnnotation ta = target.getTextAnnotation();
+        for (int i = target.getStartSpan(); i < target.getEndSpan(); i++){
+            ret_features.add(target.getTextAnnotation().getToken(i));
+            //ret_features.add("BC_" + getBrownClusterLabel(ta, i));
+        }
+        return ret_features;
+    }
+    public List<String> getLexicalFeaturePartC(Relation r){
         List<String> ret_features = new ArrayList<String>();
         Constituent source = r.getSource();
         Constituent target = r.getTarget();
-        Constituent sourceHead = getEntityHeadForConstituent(source, source.getTextAnnotation(), "EntityHeads");
-        Constituent targetHead = getEntityHeadForConstituent(target, target.getTextAnnotation(), "EntityHeads");
-        String sourceHeadWord = sourceHead.toString();
-        String targetHeadWord = targetHead.toString();
-        for (int i = source.getStartSpan(); i < source.getEndSpan(); i++){
-            ret_features.add(source.getTextAnnotation().getToken(i));
-        }
-        for (int i = target.getStartSpan(); i < target.getEndSpan(); i++) {
-            ret_features.add(target.getTextAnnotation().getToken(i));
-        }
         if (source.getEndSpan() == target.getStartSpan() - 1){
             ret_features.add("singleword_" + source.getTextAnnotation().getToken(source.getEndSpan()));
         }
-        if (target.getEndSpan() == source.getStartSpan() - 1){
+        else if (target.getEndSpan() == source.getStartSpan() - 1){
             ret_features.add("singleword_" + target.getTextAnnotation().getToken(target.getEndSpan()));
         }
+        else {
+            ret_features.add("No_singleword");
+        }
+        return ret_features;
+    }
+    public List<String> getLexicalFeaturePartCC(Relation r){
+        List<String> ret_features = new ArrayList<String>();
+        Constituent source = r.getSource();
+        TextAnnotation ta = source.getTextAnnotation();
+        Constituent source_head = getEntityHeadForConstituent(source, ta, "TEST");
+        Constituent target = r.getTarget();
+        Constituent target_head = getEntityHeadForConstituent(target, ta, "TEST");
+        if (source_head.getEndSpan() < target_head.getStartSpan()){
+            for (int i = source_head.getEndSpan(); i < target_head.getStartSpan(); i++) {
+                ret_features.add("bowbethead_" + source.getTextAnnotation().getToken(i));
+            }
+        }
+        if (target_head.getEndSpan() < source_head.getStartSpan()){
+            for (int i = target_head.getEndSpan(); i < source_head.getStartSpan(); i++) {
+                ret_features.add("bowbethead_" + source.getTextAnnotation().getToken(i));
+            }
+        }
+        return ret_features;
+    }
+    public List<String> getLexicalFeaturePartD(Relation r){
+        List<String> ret_features = new ArrayList<String>();
+        Constituent source = r.getSource();
+        Constituent target = r.getTarget();
         TextAnnotation ta = source.getTextAnnotation();
         if (target.getStartSpan() - source.getEndSpan() > 1) {
             ret_features.add("between_first_" + ta.getToken(source.getEndSpan()));
@@ -90,7 +124,7 @@ public class RelationFeatureExtractor {
                 }
             }
         }
-        if (source.getStartSpan() - target.getEndSpan() > 1){
+        else if (source.getStartSpan() - target.getEndSpan() > 1){
             ret_features.add("between_first_" + ta.getToken(target.getEndSpan()));
             ret_features.add("between_first_" + ta.getToken(source.getStartSpan() - 1));
             if (source.getStartSpan() - target.getEndSpan() > 2){
@@ -99,31 +133,48 @@ public class RelationFeatureExtractor {
                 }
             }
         }
+        else {
+            ret_features.add("No_between_features");
+        }
+        return ret_features;
+    }
+    public List<String> getLexicalFeaturePartE(Relation r){
+        List<String> ret_features = new ArrayList<String>();
+        Constituent source = r.getSource();
+        Constituent target = r.getTarget();
+        TextAnnotation ta = source.getTextAnnotation();
         int sentenceStart = ta.getSentence(source.getSentenceId()).getStartSpan();
         int sentenceEnd = ta.getSentence(source.getSentenceId()).getEndSpan();
-
         if (source.getStartSpan() - sentenceStart > 0){
             ret_features.add("fwM1_" + ta.getToken(source.getStartSpan() - 1));
             if (source.getStartSpan() - sentenceEnd > 1){
                 ret_features.add("swM1_" + ta.getToken(source.getStartSpan() - 2));
             }
+            else{
+                ret_features.add("swM1_NULL");
+            }
+        }
+        else{
+            ret_features.add("fwM2_NULL");
+            ret_features.add("swM1_NULL");
         }
         if (sentenceEnd - target.getEndSpan() > 0){
             ret_features.add("fwM2_" + ta.getToken(target.getEndSpan()));
             if (sentenceEnd - target.getEndSpan() > 1){
                 ret_features.add("swM2_" + ta.getToken(target.getEndSpan() + 1));
             }
+            else {
+                ret_features.add("swM2_NULL");
+            }
         }
-
-        ret_features.add("HM1_" + sourceHeadWord);
-        ret_features.add("HM2_" + targetHeadWord);
-        ret_features.add("HM12_" + sourceHeadWord + "_" + targetHeadWord);
-
+        else {
+            ret_features.add("fwM2_NULL");
+            ret_features.add("swM2_NULL");
+        }
         return ret_features;
     }
 
-
-    public List<String> getLexicalFeatureHeadOnly(Relation r){
+    public List<String> getLexicalFeaturePartF(Relation r){
         List<String> ret_features = new ArrayList<String>();
         Constituent source = r.getSource();
         Constituent target = r.getTarget();
@@ -131,122 +182,10 @@ public class RelationFeatureExtractor {
         Constituent targetHead = getEntityHeadForConstituent(target, target.getTextAnnotation(), "EntityHeads");
         String sourceHeadWord = sourceHead.toString();
         String targetHeadWord = targetHead.toString();
-        for (int i = sourceHead.getStartSpan(); i < sourceHead.getEndSpan(); i++){
-            ret_features.add(source.getTextAnnotation().getToken(i));
-        }
-        for (int i = targetHead.getStartSpan(); i < targetHead.getEndSpan(); i++) {
-            ret_features.add(target.getTextAnnotation().getToken(i));
-        }
-        if (sourceHead.getEndSpan() == targetHead.getStartSpan() - 1){
-            ret_features.add("singleword_" + source.getTextAnnotation().getToken(sourceHead.getEndSpan()));
-        }
-        if (targetHead.getEndSpan() == sourceHead.getStartSpan() - 1){
-            ret_features.add("singleword_" + target.getTextAnnotation().getToken(targetHead.getEndSpan()));
-        }
-        TextAnnotation ta = source.getTextAnnotation();
-        if (targetHead.getStartSpan() - sourceHead.getEndSpan() > 1) {
-            ret_features.add("between_first_" + ta.getToken(sourceHead.getEndSpan()));
-            ret_features.add("between_first_" + ta.getToken(targetHead.getStartSpan() - 1));
-            if (targetHead.getStartSpan() - sourceHead.getEndSpan() > 2) {
-                for (int i = sourceHead.getEndSpan() + 1; i < targetHead.getStartSpan() - 1; i++) {
-                    ret_features.add("in_between_" + ta.getToken(i));
-                }
-            }
-        }
-        if (sourceHead.getStartSpan() - targetHead.getEndSpan() > 1){
-            ret_features.add("between_first_" + ta.getToken(targetHead.getEndSpan()));
-            ret_features.add("between_first_" + ta.getToken(sourceHead.getStartSpan() - 1));
-            if (sourceHead.getStartSpan() - targetHead.getEndSpan() > 2){
-                for (int i = targetHead.getEndSpan() + 1; i < sourceHead.getStartSpan() - 1; i++){
-                    ret_features.add("in_between_" + ta.getToken(i));
-                }
-            }
-        }
-        int sentenceStart = ta.getSentence(source.getSentenceId()).getStartSpan();
-        int sentenceEnd = ta.getSentence(source.getSentenceId()).getEndSpan();
-
-        if (sourceHead.getStartSpan() - sentenceStart > 0){
-            ret_features.add("fwM1_" + ta.getToken(sourceHead.getStartSpan() - 1));
-            if (sourceHead.getStartSpan() - sentenceEnd > 1){
-                ret_features.add("swM1_" + ta.getToken(sourceHead.getStartSpan() - 2));
-            }
-        }
-        if (sentenceEnd - targetHead.getEndSpan() > 0){
-            ret_features.add("fwM2_" + ta.getToken(targetHead.getEndSpan()));
-            if (sentenceEnd - targetHead.getEndSpan() > 1){
-                ret_features.add("swM2_" + ta.getToken(targetHead.getEndSpan() + 1));
-            }
-        }
-
         ret_features.add("HM1_" + sourceHeadWord);
         ret_features.add("HM2_" + targetHeadWord);
         ret_features.add("HM12_" + sourceHeadWord + "_" + targetHeadWord);
-
         return ret_features;
-    }
-    /*
-     * getLexicalFeature_BC
-     * Replaces all the words in lexical features to BrownCluster representations
-     */
-    public List<String> getLexicalFeature_BC(Relation r){
-        List<String> ret_features = new ArrayList<String>();
-        Constituent source = r.getSource();
-        Constituent target = r.getTarget();
-        Constituent sourceHead = getEntityHeadForConstituent(source, source.getTextAnnotation(), "EntityHeads");
-        Constituent targetHead = getEntityHeadForConstituent(target, target.getTextAnnotation(), "EntityHeads");
-        TextAnnotation ta = source.getTextAnnotation();
-        for (int i = source.getStartSpan(); i < source.getEndSpan(); i++){
-            ret_features.add("bc_" + getBrownClusterLabel(ta, i));
-        }
-        for (int i = target.getStartSpan(); i < target.getEndSpan(); i++) {
-            ret_features.add("bc_" + getBrownClusterLabel(ta, i));
-        }
-        if (source.getEndSpan() == target.getStartSpan() - 1){
-            ret_features.add("singleword_bc_" + getBrownClusterLabel(ta, source.getEndSpan()));
-        }
-        if (target.getEndSpan() == source.getStartSpan() - 1){
-            ret_features.add("singleword_bc_" + getBrownClusterLabel(ta, target.getEndSpan()));
-        }
-        if (target.getStartSpan() - source.getEndSpan() > 1) {
-            ret_features.add("between_first_bc_" + getBrownClusterLabel(ta, source.getEndSpan()));
-            ret_features.add("between_first_bc_" + getBrownClusterLabel(ta, target.getStartSpan() - 1));
-            if (target.getStartSpan() - source.getEndSpan() > 2) {
-                for (int i = source.getEndSpan() + 1; i < target.getStartSpan() - 1; i++) {
-                    ret_features.add("in_between_bc_" + getBrownClusterLabel(ta, i));
-                }
-            }
-        }
-        if (source.getStartSpan() - target.getEndSpan() > 1){
-            ret_features.add("between_first_bc_" + getBrownClusterLabel(ta, target.getEndSpan()));
-            ret_features.add("between_first_bc_" + getBrownClusterLabel(ta, source.getStartSpan() - 1));
-            if (source.getStartSpan() - target.getEndSpan() > 2){
-                for (int i = target.getEndSpan() + 1; i < source.getStartSpan() - 1; i++){
-                    ret_features.add("in_between_bc_" + getBrownClusterLabel(ta, i));
-                }
-            }
-        }
-        int sentenceStart = ta.getSentence(source.getSentenceId()).getStartSpan();
-        int sentenceEnd = ta.getSentence(source.getSentenceId()).getEndSpan();
-
-        if (source.getStartSpan() - sentenceStart > 0){
-            ret_features.add("fwM1_bc_" + getBrownClusterLabel(ta,source.getStartSpan() - 1));
-            if (source.getStartSpan() - sentenceEnd > 1){
-                ret_features.add("swM1_bc_" + getBrownClusterLabel(ta,source.getStartSpan() - 2));
-            }
-        }
-        if (sentenceEnd - target.getEndSpan() > 0){
-            ret_features.add("fwM2_bc_" + getBrownClusterLabel(ta, target.getEndSpan()));
-            if (sentenceEnd - target.getEndSpan() > 1){
-                ret_features.add("swM2_bc_" + getBrownClusterLabel(ta, target.getEndSpan() + 1));
-            }
-        }
-
-        ret_features.add("HM1_bc_" + getBrownClusterLabel(ta, sourceHead.getStartSpan()));
-        ret_features.add("HM2_bc_" + getBrownClusterLabel(ta, targetHead.getStartSpan()));
-        ret_features.add("HM12_bc_" + getBrownClusterLabel(ta, sourceHead.getStartSpan()) + "_" + getBrownClusterLabel(ta, targetHead.getStartSpan()));
-
-        return ret_features;
-
     }
 
     /*
@@ -291,8 +230,14 @@ public class RelationFeatureExtractor {
         if (sourceHead.getStartSpan() > source.getStartSpan()) {
             ret_features.add("s_m1_m1_" + source.getTextAnnotation().getToken(sourceHead.getStartSpan() - 1));
         }
+        else{
+            ret_features.add("s_m1_m1_null");
+        }
         if (sourceHead.getEndSpan() < source.getEndSpan()) {
             ret_features.add("s_p1_p1_" + source.getTextAnnotation().getToken(sourceHead.getEndSpan()));
+        }
+        else {
+            ret_features.add("s_p1_p1_null");
         }
 
         //Target Features
@@ -323,8 +268,14 @@ public class RelationFeatureExtractor {
         if (targetHead.getStartSpan() > target.getStartSpan()) {
             ret_features.add("t_m1_m1_" + target.getTextAnnotation().getToken(targetHead.getStartSpan() - 1));
         }
+        else {
+            ret_features.add("t_m1_m1_null");
+        }
         if (targetHead.getEndSpan() < target.getEndSpan()) {
             ret_features.add("t_p1_p1_" + target.getTextAnnotation().getToken(targetHead.getEndSpan()));
+        }
+        else{
+            ret_features.add("t_p1_p1_null");
         }
 
         return ret_features;
@@ -504,45 +455,29 @@ public class RelationFeatureExtractor {
             ret.add("middle_mention_size_" + Integer.toString(middle.size()));
             ret.add("middle_word_size_" + Integer.toString(target.getStartSpan() - source.getEndSpan()));
         }
-        if (source.getStartSpan() > target.getEndSpan()){
+        else if (source.getStartSpan() > target.getEndSpan()){
             List<Constituent> middle = mentionView.getConstituentsCoveringSpan(target.getEndSpan(), source.getStartSpan() - 1);
             ret.add("middle_mention_size_" + Integer.toString(middle.size()));
             ret.add("middle_word_size_" + Integer.toString(source.getStartSpan() - target.getEndSpan()));
+        }
+        else{
+            ret.add("middle_mention_size_null");
+            ret.add("middle_word_size_null");
         }
         if (source.doesConstituentCover(target)){
             ret.add("m2_in_m1");
             ret.add("cb1_" + source.getAttribute("EnityType") + "_" + target.getAttribute("EntityType")+ "_m2_in_m1");
             ret.add("cb2_" + sourceHead.toString() + "_" + targetHead.toString() + "_m2_in_m1");
         }
-        if (target.doesConstituentCover(source)){
+        else if (target.doesConstituentCover(source)){
             ret.add("m1_in_m2");
             ret.add("cb1_" + source.getAttribute("EnityType") + "_" + target.getAttribute("EntityType")+ "_m1_in_m2");
             ret.add("cb2_" + sourceHead.toString() + "_" + targetHead.toString() + "_m1_in_m2");
         }
-        return ret;
-    }
-
-    public List<String> getStructualFeatureHeadOnly(Relation r){
-        List<String> ret = new ArrayList<String>();
-        Constituent source = r.getSource();
-        Constituent target = r.getTarget();
-        Constituent sourceHead = getEntityHeadForConstituent(source, source.getTextAnnotation(), "EntityHeads");
-        Constituent targetHead = getEntityHeadForConstituent(target, target.getTextAnnotation(), "EntityHeads");
-        /*
-        View mentionView = source.getTextAnnotation().getView(ViewNames.MENTION_ACE);
-        if (sourceHead.getAttribute("IsPredicted") != null){
-            mentionView = source.getTextAnnotation().getView("PREDICTED_MENTION_EXTRACTOR");
-        }
-        */
-        if (targetHead.getStartSpan() > sourceHead.getEndSpan()){
-            //List<Constituent> middle = mentionView.getConstituentsCoveringSpan(sourceHead.getEndSpan(), targetHead.getStartSpan() - 1);
-            //ret.add("middle_mention_size_" + Integer.toString(middle.size()));
-            //ret.add("middle_word_size_" + Integer.toString(targetHead.getStartSpan() - sourceHead.getEndSpan()));
-        }
-        if (sourceHead.getStartSpan() > targetHead.getEndSpan()){
-            //List<Constituent> middle = mentionView.getConstituentsCoveringSpan(targetHead.getEndSpan(), sourceHead.getStartSpan() - 1);
-            //ret.add("middle_mention_size_" + Integer.toString(middle.size()));
-            //ret.add("middle_word_size_" + Integer.toString(sourceHead.getStartSpan() - targetHead.getEndSpan()));
+        else{
+            ret.add("m1_m2_no_coverage");
+            ret.add("cb1_" + source.getAttribute("EnityType") + "_" + target.getAttribute("EntityType")+ "_m1_m2_no_coverage");
+            ret.add("cb2_" + sourceHead.toString() + "_" + targetHead.toString() + "_m1_m2_no_coverage");
         }
         return ret;
     }
@@ -596,7 +531,7 @@ public class RelationFeatureExtractor {
      */
     public List<String> getDependencyFeature(Relation r){
         List<String> ret = new ArrayList<String>();
-        TreeView parse = (TreeView) r.getSource().getTextAnnotation().getView(ViewNames.DEPENDENCY_STANFORD);
+        TreeView parse = (TreeView) r.getSource().getTextAnnotation().getView(ViewNames.DEPENDENCY);
         Constituent source = r.getSource();
         Constituent target = r.getTarget();
         Constituent source_head = getEntityHeadForConstituent(source, source.getTextAnnotation(), "EntityHeads");
@@ -628,25 +563,6 @@ public class RelationFeatureExtractor {
         }catch (Exception e){
             ret.add("hw_parent_none");
         }
-        //This block is commented out due to performance issues.
-        //The features extracted by the commented block are listed in the paper
-        //But they failed to bring performance consistency
-        /*
-        try {
-            Constituent source_parsed = parse.getConstituentsCoveringToken(source_head.getStartSpan()).get(0);
-            Constituent target_parsed = parse.getConstituentsCoveringToken(target_head.getStartSpan()).get(0);
-            List<Constituent> spl = PathFeatureHelper.getPathToRoot(source_parsed, 100);
-            List<Constituent> tpl = PathFeatureHelper.getPathToRoot(target_parsed, 100);
-            for (Constituent sp : spl){
-                ret.add(sp.getLabel());
-            }
-            for (Constituent tp : tpl){
-                ret.add(tp.getLabel());
-            }
-        }catch (Exception e){
-            ret.add("no_between_deplabel");
-        }
-        */
         return ret;
     }
 
@@ -663,7 +579,6 @@ public class RelationFeatureExtractor {
             if (c.toString().equals(ta.getToken(spanIdex).toString())){
                 return (c.getLabel() + "00000000").substring(0, 4);
             }
-
         }
         return "NULL_LABEL";
     }
@@ -694,30 +609,28 @@ public class RelationFeatureExtractor {
         Constituent sourceHead = getEntityHeadForConstituent(source, ta, "EntityHeads");
         Constituent targetHead = getEntityHeadForConstituent(target, ta, "EntityHeads");
         View posView = ta.getView(ViewNames.POS);
-        View mentionView = ta.getView(ViewNames.MENTION_ACE);
         if (source.getStartSpan() - target.getEndSpan() == 1){
             List<String> poss = posView.getLabelsCoveringToken(target.getEndSpan());
             if (poss.size() > 0) {
                 ret.add("pos_single_word_" + poss.get(0));
             }
+            else{
+                ret.add("pos_single_word_no_pos");
+            }
         }
-        if (target.getStartSpan() - source.getEndSpan() == 1){
+        else if (target.getStartSpan() - source.getEndSpan() == 1){
             List<String> poss = posView.getLabelsCoveringToken(source.getEndSpan());
             if (poss.size() > 0) {
                 ret.add("pos_single_word_" + poss.get(0));
             }
+            else {
+                ret.add("pos_single_word_no_pos");
+            }
+        }
+        else{
+            ret.add("no_single_word");
         }
 
-        List<String> sourceHeadPosList = posView.getLabelsCoveringToken(sourceHead.getStartSpan());
-        List<String> targetHeadPosList = posView.getLabelsCoveringToken(targetHead.getStartSpan());
-        String sourceHeadPos = "NULL_POS";
-        String targetHeadPos = "NULL_POS";
-        if (sourceHeadPosList.size() > 0){
-            sourceHeadPos = sourceHeadPosList.get(0);
-        }
-        if (targetHeadPosList.size() > 0){
-            targetHeadPos = targetHeadPosList.get(0);
-        }
         String s_pos_m1_m1 = "NULL_s_pos_m1_m1";
         String s_pos_m2_m1 = "NULL_s_pos_m2_m1";
         if (sourceHead.getStartSpan() > 0){
@@ -764,12 +677,47 @@ public class RelationFeatureExtractor {
             t_pos_m1_p1 = posView.getLabelsCoveringToken(targetHead.getStartSpan() - 1).get(0)
                           + posView.getLabelsCoveringToken(targetHead.getEndSpan()).get(0);
         }
+        String sourceHeadPos = "NULL_POS_S";
+        String targetHeadPos = "NULL_POS_T";
+        if (posView.getConstituentsCoveringToken(sourceHead.getStartSpan()).size() > 0){
+            sourceHeadPos = posView.getLabelsCoveringToken(sourceHead.getStartSpan()).get(0);
+        }
+        if (posView.getConstituentsCoveringToken(targetHead.getStartSpan()).size() > 0){
+            targetHeadPos = posView.getLabelsCoveringToken(targetHead.getStartSpan()).get(0);
+        }
+        /*
+        ret.add(sourceHeadPos);
+        ret.add(targetHeadPos);
+        ret.add(t_pos_p1_p1);
+        ret.add(t_pos_m1_m1);
+        ret.add(t_pos_m2_m1);
+        ret.add(t_pos_m1_p1);
+        ret.add(t_pos_p1_p2);
+        ret.add(s_pos_p1_p1);
+        ret.add(s_pos_m1_m1);
+        ret.add(s_pos_m2_m1);
+        ret.add(s_pos_m1_p1);
+        ret.add(s_pos_p1_p2);
+        */
+        sourceHeadPos = sourceHead.toString();
+        targetHeadPos = targetHead.toString();
         ret.add("pos_1_" + sourceHeadPos + "_" + targetHeadPos + "_" + s_pos_p1_p1 + "_" + t_pos_p1_p1);
         ret.add("pos_2_" + sourceHeadPos + "_" + targetHeadPos + "_" + s_pos_m1_m1 + "_" + t_pos_m1_m1);
         ret.add("pos_3_" + sourceHeadPos + "_" + targetHeadPos + "_" + s_pos_m2_m1 + "_" + t_pos_m2_m1);
         ret.add("pos_4_" + sourceHeadPos + "_" + targetHeadPos + "_" + s_pos_m1_p1 + "_" + t_pos_m1_p1);
         ret.add("pos_5_" + sourceHeadPos + "_" + targetHeadPos + "_" + s_pos_p1_p2 + "_" + t_pos_p1_p2);
+        //assert(ret.size() == 6);
+
         return ret;
+    }
+
+    public List<String> getShallowParseFeature(Relation r){
+        List<String> ret_features = new ArrayList<String>();
+        Constituent source = r.getSource();
+        Constituent target = r.getTarget();
+        TextAnnotation ta = source.getTextAnnotation();
+
+        return ret_features;
     }
 
     public String getCorefTag(Relation r){
