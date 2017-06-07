@@ -55,14 +55,206 @@ public class RelationFeatureExtractor {
         return null;
     }
 
+    public boolean isPossessive(Relation r){
+        Constituent source = r.getSource();
+        Constituent target = r.getTarget();
+        TextAnnotation ta = source.getTextAnnotation();
+        Constituent source_head = getEntityHeadForConstituent(source, ta, "TEST");
+        Constituent target_head = getEntityHeadForConstituent(target, ta, "TEST");
+        Constituent front = null;
+        Constituent back = null;
+        Constituent front_head = null;
+        Constituent back_head = null;
+        View posView = ta.getView(ViewNames.POS);
+        if ((source_head.getStartSpan() >= target.getStartSpan() && source_head.getEndSpan() <= target.getEndSpan())
+            || (target_head.getStartSpan() >= source.getStartSpan() && target_head.getEndSpan() <= source.getEndSpan())){
+            if (source_head.getStartSpan() > target_head.getStartSpan()){
+                front = target;
+                front_head = target_head;
+                back = source;
+                back_head = source_head;
+            }
+            else{
+                front = source;
+                front_head = source_head;
+                back = target;
+                back_head = target_head;
+            }
+        }
+        if (front == null){
+            return false;
+        }
+        for (int i = front_head.getEndSpan(); i < back_head.getStartSpan(); i++){
+            if (ta.getToken(i).equals("'s")){
+                return true;
+            }
+            if (i < back_head.getStartSpan() - 1 && ta.getToken(i).equals("'") && ta.getToken(i+1).equals("s")){
+                return true;
+            }
+        }
+        if (posView.getLabelsCoveringToken(front_head.getEndSpan()).get(0).equals("POS")){
+            return true;
+        }
+        if (posView.getLabelsCoveringToken(front_head.getEndSpan() - 1).get(0).equals("PRP$")
+                || posView.getLabelsCoveringToken(front_head.getEndSpan() - 1).get(0).equals("WP$")){
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isNoun(String posTag){
+        if (posTag.startsWith("NN") || posTag.startsWith("RB") || posTag.startsWith("WP")){
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isPreposition(Relation r){
+        Constituent source = r.getSource();
+        Constituent target = r.getTarget();
+        TextAnnotation ta = source.getTextAnnotation();
+        Constituent source_head = getEntityHeadForConstituent(source, ta, "TEST");
+        Constituent target_head = getEntityHeadForConstituent(target, ta, "TEST");
+        Constituent front = null;
+        Constituent back = null;
+        Constituent front_head = null;
+        Constituent back_head = null;
+        int SentenceStart = ta.getSentence(ta.getSentenceId(source)).getStartSpan();
+        View posView = ta.getView(ViewNames.POS);
+        View spView = ta.getView(ViewNames.SHALLOW_PARSE);
+        if (source_head.getStartSpan() > target_head.getStartSpan()){
+            front = target;
+            front_head = target_head;
+            back = source;
+            back_head = source_head;
+        }
+        else{
+            front = source;
+            front_head = source_head;
+            back = target;
+            back_head = target_head;
+        }
+        boolean found_in_to = false;
+        boolean noNp = true;
+        for (int i = front_head.getEndSpan(); i < back_head.getStartSpan(); i++){
+            if (isNoun(posView.getLabelsCoveringToken(i).get(0))){
+                noNp = false;
+            }
+            if (posView.getLabelsCoveringToken(i).get(0).equals("IN") || posView.getLabelsCoveringToken(i).get(0).equals("TO")){
+                found_in_to = true;
+            }
+        }
+        if (found_in_to && noNp){
+            return true;
+        }
+        boolean found_in = false;
+        noNp = true;
+        /*
+        for (int i = front_head.getStartSpan() - 1; i >= SentenceStart; i--){
+            if (isNoun(posView.getLabelsCoveringToken(i).get(0))){
+                noNp = false;
+            }
+            if (posView.getLabelsCoveringToken(i).get(0).equals("IN")){
+                found_in = true;
+            }
+        }
+        if (found_in && noNp) {
+            return true;
+        }
+        */
+        found_in_to = false;
+        noNp = true;
+        boolean non_overlap = false;
+        for (int i = front.getEndSpan(); i < back.getStartSpan(); i++){
+            non_overlap = true;
+            if (isNoun(posView.getLabelsCoveringToken(i).get(0))){
+                noNp = false;
+            }
+            if (posView.getLabelsCoveringToken(i).get(0).equals("IN") || posView.getLabelsCoveringToken(i).get(0).equals("TO")){
+                found_in_to = true;
+            }
+        }
+        if (found_in_to && noNp){
+            return true;
+        }
+        found_in = false;
+        for (int i = front.getStartSpan() - 1; i >= SentenceStart; i--){
+            if (isNoun(posView.getLabelsCoveringToken(i).get(0))){
+                noNp = false;
+            }
+            if (posView.getLabelsCoveringToken(i).get(0).equals("IN")){
+                found_in = true;
+            }
+        }
+        if (found_in && noNp && non_overlap) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isFormulaic(Relation r){
+        Constituent source = r.getSource();
+        Constituent target = r.getTarget();
+        TextAnnotation ta = source.getTextAnnotation();
+        Constituent source_head = getEntityHeadForConstituent(source, ta, "TEST");
+        Constituent target_head = getEntityHeadForConstituent(target, ta, "TEST");
+        Constituent front = null;
+        Constituent back = null;
+        Constituent front_head = null;
+        Constituent back_head = null;
+        View posView = ta.getView(ViewNames.POS);
+        View spView = ta.getView(ViewNames.SHALLOW_PARSE);
+        if (source_head.getStartSpan() > target_head.getStartSpan()){
+            front = target;
+            front_head = target_head;
+            back = source;
+            back_head = source_head;
+        }
+        else{
+            front = source;
+            front_head = source_head;
+            back = target;
+            back_head = target_head;
+        }
+        for (int i = front_head.getEndSpan(); i < back_head.getStartSpan() - 1; i++){
+            if (spView.getLabelsCoveringToken(i).size() > 0 && !spView.getLabelsCoveringToken(i).get(0).equals("NP")){
+                return false;
+            }
+        }
+        if (front.getAttribute("EntityType").equals("PER") && (back.getAttribute("EntityType").equals("ORG") ||
+                                                                   back.getAttribute("EntityType").equals("GPE"))){
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isPremodifier(Relation r){
+        Constituent source = r.getSource();
+        Constituent target = r.getTarget();
+        TextAnnotation ta = source.getTextAnnotation();
+        Constituent source_head = getEntityHeadForConstituent(source, ta, "TEST");
+        Constituent target_head = getEntityHeadForConstituent(target, ta, "TEST");
+        Constituent front = null;
+        Constituent back = null;
+        Constituent front_head = null;
+        Constituent back_head = null;
+        View posView = ta.getView(ViewNames.POS);
+        View spView = ta.getView(ViewNames.SHALLOW_PARSE);
+        return false;
+    }
+
+
 
     public List<String> getLexicalFeaturePartA(Relation r){
+        if (isFormulaic(r) && !isPossessive(r)){
+            //System.out.println(r.getSource() + " | " + r.getTarget());
+        }
         List<String> ret_features = new ArrayList<String>();
         Constituent source = r.getSource();
         TextAnnotation ta = source.getTextAnnotation();
         for (int i = source.getStartSpan(); i < source.getEndSpan(); i++){
             ret_features.add(source.getTextAnnotation().getToken(i));
-            //ret_features.add("BC_" + getBrownClusterLabel(ta, i));
+            ret_features.add("BC_" + getBrownClusterLabel(ta, i));
         }
         return ret_features;
     }
@@ -72,7 +264,7 @@ public class RelationFeatureExtractor {
         TextAnnotation ta = target.getTextAnnotation();
         for (int i = target.getStartSpan(); i < target.getEndSpan(); i++){
             ret_features.add(target.getTextAnnotation().getToken(i));
-            //ret_features.add("BC_" + getBrownClusterLabel(ta, i));
+            ret_features.add("BC_" + getBrownClusterLabel(ta, i));
         }
         return ret_features;
     }
@@ -80,14 +272,18 @@ public class RelationFeatureExtractor {
         List<String> ret_features = new ArrayList<String>();
         Constituent source = r.getSource();
         Constituent target = r.getTarget();
+        TextAnnotation ta = source.getTextAnnotation();
         if (source.getEndSpan() == target.getStartSpan() - 1){
             ret_features.add("singleword_" + source.getTextAnnotation().getToken(source.getEndSpan()));
+            //ret_features.add("singlewordbc_" + getBrownClusterLabel(ta, source.getEndSpan()));
         }
         else if (target.getEndSpan() == source.getStartSpan() - 1){
             ret_features.add("singleword_" + target.getTextAnnotation().getToken(target.getEndSpan()));
+            //ret_features.add("singlewordbc_" + getBrownClusterLabel(ta, target.getEndSpan()));
         }
         else {
             ret_features.add("No_singleword");
+            //ret_features.add("No_singleword_bc");
         }
         return ret_features;
     }
@@ -101,11 +297,13 @@ public class RelationFeatureExtractor {
         if (source_head.getEndSpan() < target_head.getStartSpan()){
             for (int i = source_head.getEndSpan(); i < target_head.getStartSpan(); i++) {
                 ret_features.add("bowbethead_" + source.getTextAnnotation().getToken(i));
+                ret_features.add("bowbetheadbc_" + getBrownClusterLabel(ta, i));
             }
         }
         if (target_head.getEndSpan() < source_head.getStartSpan()){
             for (int i = target_head.getEndSpan(); i < source_head.getStartSpan(); i++) {
                 ret_features.add("bowbethead_" + source.getTextAnnotation().getToken(i));
+                ret_features.add("bowbetheadbc_" + getBrownClusterLabel(ta, i));
             }
         }
         return ret_features;
@@ -574,7 +772,7 @@ public class RelationFeatureExtractor {
      * Notice: This function expects view BROWN_CLUSTERS_c100
      */
     public String getBrownClusterLabel(TextAnnotation ta, int spanIdex){
-        View bcView = ta.getView("BROWN_CLUSTERS_c100");
+        View bcView = ta.getView("BROWN_CLUSTERS_c1000");
         for (Constituent c : bcView.getConstituentsCoveringToken(spanIdex)){
             if (c.toString().equals(ta.getToken(spanIdex).toString())){
                 return (c.getLabel() + "00000000").substring(0, 4);
@@ -716,7 +914,35 @@ public class RelationFeatureExtractor {
         Constituent source = r.getSource();
         Constituent target = r.getTarget();
         TextAnnotation ta = source.getTextAnnotation();
+        Constituent sourceHead = getEntityHeadForConstituent(source, ta, "EntityHeads");
+        Constituent targetHead = getEntityHeadForConstituent(target, ta, "EntityHeads");
+        View spView = ta.getView(ViewNames.SHALLOW_PARSE);
+        if (sourceHead.getStartSpan() >= targetHead.getEndSpan() - 1){
+            List<Constituent> cons = spView.getConstituentsCoveringSpan(targetHead.getEndSpan(), sourceHead.getStartSpan() - 1);
+            Set<Constituent> labels_no_overlap = new HashSet<Constituent>(cons);
+            String fet = "";
+            for (Constituent c : labels_no_overlap){
+                fet += c.getLabel();
+                if (c.getLabel().equals("NP") == false) {
+                    ret_features.add(c.getLabel());
+                }
+            }
 
+            //ret_features.add(fet);
+        }
+        if (targetHead.getStartSpan() >= sourceHead.getEndSpan() - 1){
+            List<Constituent> cons = spView.getConstituentsCoveringSpan(sourceHead.getEndSpan(), targetHead.getStartSpan() - 1);
+            Set<Constituent> labels_no_overlap = new HashSet<Constituent>(cons);
+            String fet = "";
+            for (Constituent c : labels_no_overlap){
+                fet += c.getLabel();
+                if (c.getLabel().equals("NP") == false) {
+                    ret_features.add(c.getLabel());
+                }
+            }
+            System.out.println(r.getSource() + " | " + r.getTarget() + ": " + fet);
+            //ret_features.add(fet);
+        }
         return ret_features;
     }
 

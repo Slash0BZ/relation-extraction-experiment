@@ -1,5 +1,7 @@
 package org.cogcomp.re;
 import com.sun.org.apache.regexp.internal.RE;
+import edu.illinois.cs.cogcomp.chunker.main.ChunkerAnnotator;
+import edu.illinois.cs.cogcomp.chunker.main.ChunkerConfigurator;
 import edu.illinois.cs.cogcomp.lbj.coref.main.AllTest;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
@@ -8,6 +10,7 @@ import edu.illinois.cs.cogcomp.lbjava.parse.Parser;
 import edu.illinois.cs.cogcomp.pipeline.server.ServerClientAnnotator;
 //import edu.illinois.cs.cogcomp.pos.*;
 import edu.illinois.cs.cogcomp.edison.annotators.*;
+import edu.illinois.cs.cogcomp.pos.POSAnnotator;
 
 import java.util.*;
 import java.lang.*;
@@ -41,6 +44,15 @@ public class PredictedMentionReader implements Parser{
             return cons;
         }
         return null;
+    }
+
+    public boolean skipTypes(String type){
+        if (type.equals("Ownership") || type.equals("Ownership_OP")
+                || type.equals("Student-Alum") || type.equals("Student-Alum_OP")
+                || type.equals("Artifact") || type.equals("Artifact_OP")){
+            return true;
+        }
+        return false;
     }
     /*
     public PredictedMentionReader(String path){
@@ -160,7 +172,18 @@ public class PredictedMentionReader implements Parser{
             ACEReader aceReader = new ACEReader(path, false);
             entity_type_classifier etc = new entity_type_classifier();
             entity_subtype_classifier esc = new entity_subtype_classifier();
+            POSAnnotator pos_annotator = new POSAnnotator();
+            ServerClientAnnotator annotator = new ServerClientAnnotator();
+            annotator.setUrl("http://localhost", "8080");
+            annotator.setViews(ViewNames.DEPENDENCY, ViewNames.SHALLOW_PARSE);
+            BrownClusterViewGenerator bc_annotator = new BrownClusterViewGenerator("c1000", BrownClusterViewGenerator.file1000);
+            ChunkerAnnotator chunker  = new ChunkerAnnotator(true);
+            chunker.initialize(new ChunkerConfigurator().getDefaultConfig());
             for (TextAnnotation ta : aceReader){
+                ta.addView(pos_annotator);
+                chunker.addView(ta);
+                bc_annotator.addView(ta);
+                annotator.addView(ta);
                 View predictedView = new SpanLabelView("RELATION_EXTRACTION_RELATIONS", RelationAnnotator.class.getCanonicalName(), ta, 1.0f, true);
                 View entityView = ta.getView(ViewNames.MENTION_ACE);
                 List<Constituent> gold_mentions = entityView.getConstituents();
@@ -257,6 +280,7 @@ public class PredictedMentionReader implements Parser{
                                         && gold_source_head.getEndSpan() == predicted_source_head.getEndSpan()
                                         && gold_target_head.getStartSpan() == predicted_target_head.getStartSpan()
                                         && gold_target_head.getEndSpan() == predicted_target_head.getEndSpan()){
+                                    if (skipTypes(r.getAttribute("RelationSubtype"))) continue;
                                     Relation newRelation = new Relation(r.getAttribute("RelationSubtype"), source, target, 1.0f);
                                     newRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
                                     newRelation.addAttribute("RelationSubtype", r.getAttribute("RelationSubtype"));
@@ -273,6 +297,7 @@ public class PredictedMentionReader implements Parser{
                                         && gold_target_head.getEndSpan() == predicted_source_head.getEndSpan()
                                         && gold_source_head.getStartSpan() == predicted_target_head.getStartSpan()
                                         && gold_source_head.getEndSpan() == predicted_target_head.getEndSpan()){
+                                    if (skipTypes(r.getAttribute("RelationSubtype"))) continue;
                                     Relation newRelation = new Relation(r.getAttribute("RelationSubtype"), target, source, 1.0f);
                                     newRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
                                     newRelation.addAttribute("RelationSubtype", r.getAttribute("RelationSubtype"));

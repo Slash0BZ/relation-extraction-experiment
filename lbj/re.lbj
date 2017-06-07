@@ -117,6 +117,14 @@ discrete% bc_bow_features(Relation r) <-{
     }
 }
 
+discrete% shallow_parse_features(Relation r) <- {
+    RelationFeatureExtractor rfe = new RelationFeatureExtractor();
+    List features = rfe.getShallowParseFeature(r);
+    for (int i = 0; i < features.size(); i++){
+        sense features.get(i);
+    }
+}
+
 discrete{"TRUE", "FALSE"} coref_tag(Relation r) <-{
     RelationFeatureExtractor rfe = new RelationFeatureExtractor();
     return rfe.getCorefTag(r);
@@ -124,13 +132,13 @@ discrete{"TRUE", "FALSE"} coref_tag(Relation r) <-{
 
 discrete relation_classifier(Relation r) <-
 learn fine_relation_label
-    using lexical_features, collocations_features, structual_features, mention_features
+    using lexical_features, collocations_features, structual_features, mention_features, dependency_features
     from new ACEMentionReader("data/partition/train/0", "relation_full_bi")
     1 rounds
     with SupportVectorMachine{
 
     }
-    testFrom new ACEMentionReader("data/partition/eval/0", "relation_full_bi")
+    testFrom new ACEMentionReader("data/partition/eval/0", "relation_full_bi_test")
     progressOutput 20000
 end
 

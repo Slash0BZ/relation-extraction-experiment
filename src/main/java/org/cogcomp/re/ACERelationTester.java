@@ -7,9 +7,7 @@ import edu.illinois.cs.cogcomp.lbjava.parse.*;
 import org.cogcomp.re.ACEMentionReader;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import java.lang.*;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
@@ -73,6 +71,7 @@ public class ACERelationTester {
             return "err";
         }
     }
+
     /*
      * This function trains and tests the five fold cv
      * It uses pre-extract and has the same result as lbjava:compile
@@ -96,6 +95,7 @@ public class ACERelationTester {
         }
         //delete_files();
     }
+
     /*
      * This function only tests the constrained classifier
      * It performs a similar five-fold cv
@@ -104,6 +104,10 @@ public class ACERelationTester {
         int total_correct = 0;
         int total_labeled = 0;
         int total_predicted = 0;
+        List<String> outputs = new ArrayList<String>();
+        Map<String, Integer> pMap = new HashMap<String, Integer>();
+        Map<String, Integer> lMap = new HashMap<String, Integer>();
+        Map<String, Integer> cMap = new HashMap<String, Integer>();
         for (int i = 0; i < 5; i++) {
             fine_relation_label output = new fine_relation_label();
             Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi");
@@ -114,27 +118,49 @@ public class ACERelationTester {
             classifier.setLexicon(lexicon);
             trainer.train(1, 1);
             ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
-            Parser parser_full = new ACEMentionReader("data/partition/eval/" + i, "relation_full_bi");
+            Parser parser_full = new ACEMentionReader("data/partition/eval/" + i, "relation_full_bi_test");
             for (Object example = parser_full.next(); example != null; example = parser_full.next()){
                 String predicted_label = constrainedClassifier.discreteValue(example);
                 if (predicted_label.equals("NOT_RELATED") == false){
+                    if (pMap.containsKey(predicted_label)){
+                        pMap.put(predicted_label, pMap.get(predicted_label) + 1);
+                    }
+                    else{
+                        pMap.put(predicted_label, 1);
+                    }
                     total_predicted ++;
                 }
                 String gold_label = output.discreteValue(example);
                 if (gold_label.equals("NOT_RELATED") == false){
+                    if (lMap.containsKey(gold_label)){
+                        lMap.put(gold_label, lMap.get(gold_label) + 1);
+                    }
+                    else{
+                        lMap.put(gold_label, 1);
+                    }
                     total_labeled ++;
                 }
                 //if (getCoarseType(predicted_label).equals(getCoarseType(gold_label))){
                 if (predicted_label.equals(gold_label)){
                     if (predicted_label.equals("NOT_RELATED") == false){
+                        if (cMap.containsKey(gold_label)){
+                            cMap.put(gold_label, cMap.get(gold_label) + 1);
+                        }
+                        else{
+                            cMap.put(gold_label, 1);
+                        }
                         total_correct ++;
                     }
                 }
                 else{
                     if (gold_label.equals("NOT_RELATED") == false){
-                        Relation r = (Relation)example;
-                        System.out.println(r.getSource().toString() + " " + r.getTarget().toString() + " " + gold_label + " " + predicted_label);
+                        //Relation r = (Relation)example;
+                        //System.out.println(r.getSource().toString() + " " + r.getTarget().toString() + " " + gold_label + " " + predicted_label);
                     }
+                }
+                if (gold_label.equals("Student-Alum")){
+                    Relation r = (Relation)example;
+                    outputs.add(r.getSource().toString() + " " + r.getTarget().toString() + " " + gold_label + " " + predicted_label);
                 }
             }
             //TestDiscrete tester_full = TestDiscrete.testDiscrete(constrainedClassifier, output, parser_full);
@@ -142,6 +168,12 @@ public class ACERelationTester {
             classifier.forget();
             parser_full.reset();
             train_parser.reset();
+        }
+        for (String o : outputs){
+            System.out.println(o);
+        }
+        for (String s : lMap.keySet()){
+            System.out.println(s + ": [labeled] " + lMap.get(s) + ", [predicted] " + pMap.get(s) + ", [correct] " + cMap.get(s));
         }
         System.out.println("Total labeled: " + total_labeled);
         System.out.println("Total predicted: " + total_predicted);
@@ -207,5 +239,6 @@ public class ACERelationTester {
     }
     public static void main(String[] args){
         test_constraint();
+        test_constraint_predicted();
     }
 }
