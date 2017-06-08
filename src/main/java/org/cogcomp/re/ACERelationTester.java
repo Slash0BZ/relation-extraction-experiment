@@ -113,11 +113,13 @@ public class ACERelationTester {
         int real_relation_ps = 0;
         int real_relation_pp = 0;
         int real_relation_f = 0;
+        int real_relation_all = 0;
         int total_null_relation = 0;
         int null_relation_pm = 0;
         int null_relation_ps = 0;
         int null_relation_pp = 0;
         int null_relation_f = 0;
+        int null_relation_all = 0;
         for (int i = 0; i < 5; i++) {
             fine_relation_label output = new fine_relation_label();
             Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi");
@@ -183,6 +185,9 @@ public class ACERelationTester {
                     if (RelationFeatureExtractor.isFormulaic(r)){
                         null_relation_f++;
                     }
+                    if (RelationFeatureExtractor.isFourType(r)){
+                        null_relation_all++;
+                    }
                 }
                 else {
                     total_real_relation++;
@@ -198,13 +203,12 @@ public class ACERelationTester {
                     if (RelationFeatureExtractor.isFormulaic(r)){
                         real_relation_f++;
                     }
-                    if (!RelationFeatureExtractor.isFourType(r)){
-                        System.out.println(r.getSource().toString() + " | " + r.getTarget().toString() + " " + gold_label);
+                    if (RelationFeatureExtractor.isFourType(r)){
+                        real_relation_all++;
+                        outputs.add(r.getSource().toString() + " | " + r.getTarget().toString() + " " + gold_label);
                     }
                 }
             }
-            //TestDiscrete tester_full = TestDiscrete.testDiscrete(constrainedClassifier, output, parser_full);
-            //tester_full.printPerformance(System.out);
             classifier.forget();
             parser_full.reset();
             train_parser.reset();
@@ -216,9 +220,9 @@ public class ACERelationTester {
             System.out.println(s + ": [labeled] " + lMap.get(s) + ", [predicted] " + pMap.get(s) + ", [correct] " + cMap.get(s));
         }
         System.out.println("Real: " + total_real_relation + "; premodifer: " + real_relation_pm + "; possessive: " + real_relation_ps
-        + "; preposition: " + real_relation_pp + "; formulaic: " + real_relation_f);
+        + "; preposition: " + real_relation_pp + "; formulaic: " + real_relation_f + "; all: " + real_relation_all);
         System.out.println("Null: " + total_null_relation + "; premodifer: " + null_relation_pm + "; possessive: " + null_relation_ps
-                + "; preposition: " + null_relation_pp + "; formulaic: " + null_relation_f);
+                + "; preposition: " + null_relation_pp + "; formulaic: " + null_relation_f + "; all: " + null_relation_all);
         System.out.println("Total labeled: " + total_labeled);
         System.out.println("Total predicted: " + total_predicted);
         System.out.println("Total correct: " + total_correct);
@@ -236,8 +240,8 @@ public class ACERelationTester {
         int total_labeled = 0;
         int total_predicted = 0;
         for (int i = 0; i < 5; i++) {
-            relation_label output = new relation_label();
-            Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full");
+            fine_relation_label output = new fine_relation_label();
+            Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi");
             relation_classifier classifier = new relation_classifier();
             classifier.setLexiconLocation("src/main/java/org/cogcomp/re/classifier_fold_" + i + ".lex");
             BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
@@ -255,8 +259,8 @@ public class ACERelationTester {
                 if (gold_label.equals("NOT_RELATED") == false){
                     total_labeled ++;
                 }
-                //if (getCoarseType(predicted_label).equals(getCoarseType(gold_label))){
-                if (predicted_label.equals(gold_label)){
+                if (getCoarseType(predicted_label).equals(getCoarseType(gold_label))){
+                //if (predicted_label.equals(gold_label)){
                     if (predicted_label.equals("NOT_RELATED") == false){
                         total_correct ++;
                     }

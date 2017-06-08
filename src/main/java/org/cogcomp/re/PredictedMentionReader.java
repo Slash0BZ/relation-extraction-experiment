@@ -183,7 +183,7 @@ public class PredictedMentionReader implements Parser{
                 ta.addView(pos_annotator);
                 chunker.addView(ta);
                 bc_annotator.addView(ta);
-                annotator.addView(ta);
+                //annotator.addView(ta);
                 View predictedView = new SpanLabelView("RELATION_EXTRACTION_RELATIONS", RelationAnnotator.class.getCanonicalName(), ta, 1.0f, true);
                 View entityView = ta.getView(ViewNames.MENTION_ACE);
                 List<Constituent> gold_mentions = entityView.getConstituents();
@@ -289,7 +289,7 @@ public class PredictedMentionReader implements Parser{
                                     newOpRelation.addAttribute("RelationType", r.getAttribute("RelationType") + "_OP");
                                     newOpRelation.addAttribute("RelationSubtype", opTypeName);
                                     relations.add(newRelation);
-                                    //relations.add(newOpRelation);
+                                    relations.add(newOpRelation);
                                     found_tag = true;
                                     break;
                                 }
@@ -306,7 +306,7 @@ public class PredictedMentionReader implements Parser{
                                     newOpRelation.addAttribute("RelationType", r.getAttribute("RelationType") + "_OP");
                                     newOpRelation.addAttribute("RelationSubtype", opTypeName);
                                     relations.add(newRelation);
-                                    //relations.add(newOpRelation);
+                                    relations.add(newOpRelation);
                                     found_tag = true;
                                     break;
                                 }
