@@ -108,6 +108,16 @@ public class ACERelationTester {
         Map<String, Integer> pMap = new HashMap<String, Integer>();
         Map<String, Integer> lMap = new HashMap<String, Integer>();
         Map<String, Integer> cMap = new HashMap<String, Integer>();
+        int total_real_relation = 0;
+        int real_relation_pm = 0;
+        int real_relation_ps = 0;
+        int real_relation_pp = 0;
+        int real_relation_f = 0;
+        int total_null_relation = 0;
+        int null_relation_pm = 0;
+        int null_relation_ps = 0;
+        int null_relation_pp = 0;
+        int null_relation_f = 0;
         for (int i = 0; i < 5; i++) {
             fine_relation_label output = new fine_relation_label();
             Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi");
@@ -158,9 +168,39 @@ public class ACERelationTester {
                         //System.out.println(r.getSource().toString() + " " + r.getTarget().toString() + " " + gold_label + " " + predicted_label);
                     }
                 }
-                if (gold_label.equals("Student-Alum")){
-                    Relation r = (Relation)example;
-                    outputs.add(r.getSource().toString() + " " + r.getTarget().toString() + " " + gold_label + " " + predicted_label);
+                Relation r = (Relation)example;
+                if (r.getAttribute("RelationSubtype").equals("NOT_RELATED")){
+                    total_null_relation++;
+                    if (RelationFeatureExtractor.isPremodifier(r)){
+                        null_relation_pm++;
+                    }
+                    if (RelationFeatureExtractor.isPossessive(r)){
+                        null_relation_ps++;
+                    }
+                    if (RelationFeatureExtractor.isPreposition(r)){
+                        null_relation_pp++;
+                    }
+                    if (RelationFeatureExtractor.isFormulaic(r)){
+                        null_relation_f++;
+                    }
+                }
+                else {
+                    total_real_relation++;
+                    if (RelationFeatureExtractor.isPremodifier(r)){
+                        real_relation_pm++;
+                    }
+                    if (RelationFeatureExtractor.isPossessive(r)){
+                        real_relation_ps++;
+                    }
+                    if (RelationFeatureExtractor.isPreposition(r)){
+                        real_relation_pp++;
+                    }
+                    if (RelationFeatureExtractor.isFormulaic(r)){
+                        real_relation_f++;
+                    }
+                    if (!RelationFeatureExtractor.isFourType(r)){
+                        System.out.println(r.getSource().toString() + " | " + r.getTarget().toString() + " " + gold_label);
+                    }
                 }
             }
             //TestDiscrete tester_full = TestDiscrete.testDiscrete(constrainedClassifier, output, parser_full);
@@ -175,6 +215,10 @@ public class ACERelationTester {
         for (String s : lMap.keySet()){
             System.out.println(s + ": [labeled] " + lMap.get(s) + ", [predicted] " + pMap.get(s) + ", [correct] " + cMap.get(s));
         }
+        System.out.println("Real: " + total_real_relation + "; premodifer: " + real_relation_pm + "; possessive: " + real_relation_ps
+        + "; preposition: " + real_relation_pp + "; formulaic: " + real_relation_f);
+        System.out.println("Null: " + total_null_relation + "; premodifer: " + null_relation_pm + "; possessive: " + null_relation_ps
+                + "; preposition: " + null_relation_pp + "; formulaic: " + null_relation_f);
         System.out.println("Total labeled: " + total_labeled);
         System.out.println("Total predicted: " + total_predicted);
         System.out.println("Total correct: " + total_correct);
@@ -239,6 +283,5 @@ public class ACERelationTester {
     }
     public static void main(String[] args){
         test_constraint();
-        test_constraint_predicted();
     }
 }

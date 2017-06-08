@@ -96,7 +96,8 @@ public class ACEMentionReader implements Parser
 
             ServerClientAnnotator annotator = new ServerClientAnnotator();
             annotator.setUrl("http://localhost", "8080");
-            annotator.setViews(ViewNames.DEPENDENCY, ViewNames.SHALLOW_PARSE);
+            //annotator.setViews(ViewNames.DEPENDENCY, ViewNames.SHALLOW_PARSE);
+            annotator.setViews(ViewNames.SHALLOW_PARSE);
             BrownClusterViewGenerator bc_annotator = new BrownClusterViewGenerator("c1000", BrownClusterViewGenerator.file1000);
             ChunkerAnnotator chunker  = new ChunkerAnnotator(true);
             chunker.initialize(new ChunkerConfigurator().getDefaultConfig());
@@ -105,7 +106,7 @@ public class ACEMentionReader implements Parser
                 ta.addView(pos_annotator);
                 chunker.addView(ta);
                 bc_annotator.addView(ta);
-                annotator.addView(ta);
+                //annotator.addView(ta);
                 View entityView = ta.getView(ViewNames.MENTION_ACE);
                 relations.addAll(entityView.getRelations());
                 entities.addAll(entityView.getConstituents());

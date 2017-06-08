@@ -1,4 +1,5 @@
 package org.cogcomp.re;
+import com.sun.org.apache.regexp.internal.RE;
 import edu.illinois.cs.cogcomp.edison.features.factory.DependencyPath;
 import edu.illinois.cs.cogcomp.edison.features.helpers.PathFeatureHelper;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
@@ -55,7 +56,7 @@ public class RelationFeatureExtractor {
         return null;
     }
 
-    public boolean isPossessive(Relation r){
+    public static boolean isPossessive(Relation r){
         Constituent source = r.getSource();
         Constituent target = r.getTarget();
         TextAnnotation ta = source.getTextAnnotation();
@@ -102,14 +103,14 @@ public class RelationFeatureExtractor {
         return false;
     }
 
-    public boolean isNoun(String posTag){
+    public static boolean isNoun(String posTag){
         if (posTag.startsWith("NN") || posTag.startsWith("RB") || posTag.startsWith("WP")){
             return true;
         }
         return false;
     }
 
-    public boolean isPreposition(Relation r){
+    public static boolean isPreposition(Relation r){
         Constituent source = r.getSource();
         Constituent target = r.getTarget();
         TextAnnotation ta = source.getTextAnnotation();
@@ -136,7 +137,7 @@ public class RelationFeatureExtractor {
         }
         boolean found_in_to = false;
         boolean noNp = true;
-        for (int i = front_head.getEndSpan(); i < back_head.getStartSpan(); i++){
+        for (int i = front_head.getEndSpan(); i < back.getStartSpan(); i++){
             if (isNoun(posView.getLabelsCoveringToken(i).get(0))){
                 noNp = false;
             }
@@ -192,7 +193,7 @@ public class RelationFeatureExtractor {
         return false;
     }
 
-    public boolean isFormulaic(Relation r){
+    public static boolean isFormulaic(Relation r){
         Constituent source = r.getSource();
         Constituent target = r.getTarget();
         TextAnnotation ta = source.getTextAnnotation();
@@ -217,7 +218,8 @@ public class RelationFeatureExtractor {
             back_head = target_head;
         }
         for (int i = front_head.getEndSpan(); i < back_head.getStartSpan() - 1; i++){
-            if (spView.getLabelsCoveringToken(i).size() > 0 && !spView.getLabelsCoveringToken(i).get(0).equals("NP")){
+            if (!posView.getLabelsCoveringToken(i).get(0).startsWith("NN")
+                    && !posView.getLabelsCoveringToken(i).get(0).equals(",")){
                 return false;
             }
         }
@@ -228,7 +230,7 @@ public class RelationFeatureExtractor {
         return false;
     }
 
-    public boolean isPremodifier(Relation r){
+    public static boolean isPremodifier(Relation r){
         Constituent source = r.getSource();
         Constituent target = r.getTarget();
         TextAnnotation ta = source.getTextAnnotation();
@@ -240,15 +242,52 @@ public class RelationFeatureExtractor {
         Constituent back_head = null;
         View posView = ta.getView(ViewNames.POS);
         View spView = ta.getView(ViewNames.SHALLOW_PARSE);
+        if (source_head.getStartSpan() > target_head.getStartSpan()){
+            front = target;
+            front_head = target_head;
+            back = source;
+            back_head = source_head;
+        }
+        else{
+            front = source;
+            front_head = source_head;
+            back = target;
+            back_head = target_head;
+        }
+        if (front == null){
+            return false;
+        }
+        if (front.getStartSpan() >= back.getStartSpan() &&
+                (front_head.getEndSpan() == back_head.getStartSpan() ||
+                        (front_head.getEndSpan() == back_head.getStartSpan() - 1 && ta.getToken(front_head.getEndSpan()).contains(".")))){
+            if (front_head.getStartSpan() == back.getStartSpan()){
+                if (posView.getLabelsCoveringToken(front_head.getStartSpan()).equals("PRP$")){
+                    return false;
+                }
+                return true;
+            }
+            for (int i = back.getStartSpan(); i < front_head.getStartSpan(); i++){
+                if (!posView.getLabelsCoveringToken(i).get(0).startsWith("JJ") &&
+                        !posView.getLabelsCoveringToken(i).get(0).startsWith("RB") &&
+                        !posView.getLabelsCoveringToken(i).get(0).startsWith("VB") &&
+                        !posView.getLabelsCoveringToken(i).get(0).startsWith("CD") &&
+                        !posView.getLabelsCoveringToken(i).get(0).startsWith("DT") &&
+                        !posView.getLabelsCoveringToken(i).get(0).startsWith("PD")){
+                    return false;
+                }
+            }
+            return true;
+        }
         return false;
     }
 
+    public static boolean isFourType (Relation r){
+        return (isPremodifier(r) || isPossessive(r) || isFormulaic(r) || isPreposition(r));
+    }
 
 
     public List<String> getLexicalFeaturePartA(Relation r){
-        if (isFormulaic(r) && !isPossessive(r)){
-            //System.out.println(r.getSource() + " | " + r.getTarget());
-        }
+
         List<String> ret_features = new ArrayList<String>();
         Constituent source = r.getSource();
         TextAnnotation ta = source.getTextAnnotation();
@@ -909,7 +948,7 @@ public class RelationFeatureExtractor {
         return ret;
     }
 
-    public List<String> getShallowParseFeature(Relation r){
+    public List<String> getShallowParseFeature(Relation r) {
         List<String> ret_features = new ArrayList<String>();
         Constituent source = r.getSource();
         Constituent target = r.getTarget();
@@ -917,11 +956,11 @@ public class RelationFeatureExtractor {
         Constituent sourceHead = getEntityHeadForConstituent(source, ta, "EntityHeads");
         Constituent targetHead = getEntityHeadForConstituent(target, ta, "EntityHeads");
         View spView = ta.getView(ViewNames.SHALLOW_PARSE);
-        if (sourceHead.getStartSpan() >= targetHead.getEndSpan() - 1){
+        if (sourceHead.getStartSpan() >= targetHead.getEndSpan() - 1) {
             List<Constituent> cons = spView.getConstituentsCoveringSpan(targetHead.getEndSpan(), sourceHead.getStartSpan() - 1);
             Set<Constituent> labels_no_overlap = new HashSet<Constituent>(cons);
             String fet = "";
-            for (Constituent c : labels_no_overlap){
+            for (Constituent c : labels_no_overlap) {
                 fet += c.getLabel();
                 if (c.getLabel().equals("NP") == false) {
                     ret_features.add(c.getLabel());
@@ -930,11 +969,11 @@ public class RelationFeatureExtractor {
 
             //ret_features.add(fet);
         }
-        if (targetHead.getStartSpan() >= sourceHead.getEndSpan() - 1){
+        if (targetHead.getStartSpan() >= sourceHead.getEndSpan() - 1) {
             List<Constituent> cons = spView.getConstituentsCoveringSpan(sourceHead.getEndSpan(), targetHead.getStartSpan() - 1);
             Set<Constituent> labels_no_overlap = new HashSet<Constituent>(cons);
             String fet = "";
-            for (Constituent c : labels_no_overlap){
+            for (Constituent c : labels_no_overlap) {
                 fet += c.getLabel();
                 if (c.getLabel().equals("NP") == false) {
                     ret_features.add(c.getLabel());
@@ -944,6 +983,23 @@ public class RelationFeatureExtractor {
             //ret_features.add(fet);
         }
         return ret_features;
+    }
+
+    public List<String> getTemplateFeature(Relation r){
+        List<String> ret_features = new ArrayList<String>();
+        if (isFormulaic(r)){
+            ret_features.add("is_formulaic_structure");
+        }
+        if (isPreposition(r)){
+            ret_features.add("is_preposition_structure");
+        }
+        if (isPossessive(r)){
+            ret_features.add("is_possessive_structure");
+        }
+        if (isPremodifier(r)){
+            ret_features.add("is_premodifier_structure");
+        }
+        return  ret_features;
     }
 
     public String getCorefTag(Relation r){
