@@ -223,11 +223,22 @@ public class RelationFeatureExtractor {
                 return false;
             }
         }
-        if (front.getAttribute("EntityType").equals("PER") && (back.getAttribute("EntityType").equals("ORG") ||
-                                                                   back.getAttribute("EntityType").equals("GPE"))){
+        if ((front.getAttribute("EntityType").equals("PER") || front.getAttribute("EntityType").equals("ORG") || front.getAttribute("EntityType").equals("GPE")) &&
+                (back.getAttribute("EntityType").equals("ORG") || back.getAttribute("EntityType").equals("GPE"))){
             return true;
         }
         return false;
+    }
+
+    public static boolean onlyNounBetween(Constituent front, Constituent back){
+        TextAnnotation ta = front.getTextAnnotation();
+        View posView = ta.getView(ViewNames.POS);
+        for (int i = front.getEndSpan(); i < back.getStartSpan(); i++){
+            if (!posView.getLabelsCoveringToken(i).get(0).startsWith("NN")){
+                return false;
+            }
+        }
+        return true;
     }
 
     public static boolean isPremodifier(Relation r){
@@ -257,26 +268,28 @@ public class RelationFeatureExtractor {
         if (front == null){
             return false;
         }
-        if (front.getStartSpan() >= back.getStartSpan() &&
-                (front_head.getEndSpan() == back_head.getStartSpan() ||
-                        (front_head.getEndSpan() == back_head.getStartSpan() - 1 && ta.getToken(front_head.getEndSpan()).contains(".")))){
-            if (front_head.getStartSpan() == back.getStartSpan()){
-                if (posView.getLabelsCoveringToken(front_head.getStartSpan()).equals("PRP$")){
-                    return false;
+        if (front.getStartSpan() >= back.getStartSpan()) {
+            if (front_head.getEndSpan() == back_head.getStartSpan() ||
+                    (front_head.getEndSpan() == back_head.getStartSpan() - 1 && ta.getToken(front_head.getEndSpan()).contains(".")) ||
+                    onlyNounBetween(front_head, back_head)) {
+                if (front_head.getStartSpan() == back.getStartSpan()) {
+                    if (posView.getLabelsCoveringToken(front_head.getStartSpan()).equals("PRP$")) {
+                        return false;
+                    }
+                    return true;
+                }
+                for (int i = back.getStartSpan(); i < front_head.getStartSpan(); i++) {
+                    if (!posView.getLabelsCoveringToken(i).get(0).startsWith("JJ") &&
+                            !posView.getLabelsCoveringToken(i).get(0).startsWith("RB") &&
+                            !posView.getLabelsCoveringToken(i).get(0).startsWith("VB") &&
+                            !posView.getLabelsCoveringToken(i).get(0).startsWith("CD") &&
+                            !posView.getLabelsCoveringToken(i).get(0).startsWith("DT") &&
+                            !posView.getLabelsCoveringToken(i).get(0).startsWith("PD")) {
+                        return false;
+                    }
                 }
                 return true;
             }
-            for (int i = back.getStartSpan(); i < front_head.getStartSpan(); i++){
-                if (!posView.getLabelsCoveringToken(i).get(0).startsWith("JJ") &&
-                        !posView.getLabelsCoveringToken(i).get(0).startsWith("RB") &&
-                        !posView.getLabelsCoveringToken(i).get(0).startsWith("VB") &&
-                        !posView.getLabelsCoveringToken(i).get(0).startsWith("CD") &&
-                        !posView.getLabelsCoveringToken(i).get(0).startsWith("DT") &&
-                        !posView.getLabelsCoveringToken(i).get(0).startsWith("PD")){
-                    return false;
-                }
-            }
-            return true;
         }
         return false;
     }
