@@ -235,6 +235,7 @@ public class RelationFeatureExtractor {
         View posView = ta.getView(ViewNames.POS);
         for (int i = front.getEndSpan(); i < back.getStartSpan(); i++){
             if (!posView.getLabelsCoveringToken(i).get(0).startsWith("NN")){
+                    //&& !posView.getLabelsCoveringToken(i).get(0).startsWith("JJ")){
                 return false;
             }
         }

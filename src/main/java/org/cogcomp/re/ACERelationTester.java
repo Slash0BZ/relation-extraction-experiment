@@ -104,6 +104,10 @@ public class ACERelationTester {
         int total_correct = 0;
         int total_labeled = 0;
         int total_predicted = 0;
+
+        int null_total_correct = 0;
+        int null_total_labeled = 0;
+        int null_total_predicted = 0;
         List<String> outputs = new ArrayList<String>();
         Map<String, Integer> pMap = new HashMap<String, Integer>();
         Map<String, Integer> lMap = new HashMap<String, Integer>();
@@ -130,7 +134,7 @@ public class ACERelationTester {
             classifier.setLexicon(lexicon);
             trainer.train(1, 1);
             ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
-            Parser parser_full = new ACEMentionReader("data/partition/eval/" + i, "relation_full_bi_test");
+            Parser parser_full = new ACEMentionReader("data/partition/eval/" + i, "relation_full_bi");
             for (Object example = parser_full.next(); example != null; example = parser_full.next()){
                 String predicted_label = constrainedClassifier.discreteValue(example);
                 if (predicted_label.equals("NOT_RELATED") == false){
@@ -142,6 +146,9 @@ public class ACERelationTester {
                     }
                     total_predicted ++;
                 }
+                else{
+                    null_total_predicted ++;
+                }
                 String gold_label = output.discreteValue(example);
                 if (gold_label.equals("NOT_RELATED") == false){
                     if (lMap.containsKey(gold_label)){
@@ -151,6 +158,9 @@ public class ACERelationTester {
                         lMap.put(gold_label, 1);
                     }
                     total_labeled ++;
+                }
+                else {
+                    null_total_labeled ++;
                 }
                 //if (getCoarseType(predicted_label).equals(getCoarseType(gold_label))){
                 if (predicted_label.equals(gold_label)){
@@ -163,11 +173,19 @@ public class ACERelationTester {
                         }
                         total_correct ++;
                     }
+                    else{
+                        null_total_correct++;
+                    }
                 }
                 else{
                     if (gold_label.equals("NOT_RELATED") == false){
-                        //Relation r = (Relation)example;
-                        //System.out.println(r.getSource().toString() + " " + r.getTarget().toString() + " " + gold_label + " " + predicted_label);
+                        if (gold_label.equals("Family") || gold_label.equals("Geographical") || gold_label.equals("Employment")
+                                || gold_label.equals("Investor-Shareholder") || gold_label.equals("Near")) {
+                            Relation r = (Relation) example;
+                            TextAnnotation ta = r.getSource().getTextAnnotation();
+                            outputs.add(ta.getSentence(ta.getSentenceId(r.getSource())).toString());
+                            outputs.add(r.getSource().toString() + " | " + r.getTarget().toString() + " " + gold_label + " " + predicted_label);
+                        }
                     }
                 }
                 Relation r = (Relation)example;
@@ -198,6 +216,7 @@ public class ACERelationTester {
                         real_relation_ps++;
                     }
                     if (RelationFeatureExtractor.isPreposition(r)){
+
                         real_relation_pp++;
                     }
                     if (RelationFeatureExtractor.isFormulaic(r)){
@@ -205,7 +224,10 @@ public class ACERelationTester {
                     }
                     if (RelationFeatureExtractor.isFourType(r)){
                         real_relation_all++;
-                        outputs.add(r.getSource().toString() + " | " + r.getTarget().toString() + " " + gold_label);
+
+                    }
+                    else {
+                        //outputs.add(r.getSource().toString() + " | " + r.getTarget().toString() + " " + gold_label);
                     }
                 }
             }
@@ -217,8 +239,9 @@ public class ACERelationTester {
             System.out.println(o);
         }
         for (String s : lMap.keySet()){
-            System.out.println(s + ": [labeled] " + lMap.get(s) + ", [predicted] " + pMap.get(s) + ", [correct] " + cMap.get(s));
+            System.out.println(s + "\t" + lMap.get(s) + "\t" + pMap.get(s) + "\t" + cMap.get(s));
         }
+        System.out.println("NOT_RELATED: " + null_total_predicted + " " + null_total_labeled + " " + null_total_correct);
         System.out.println("Real: " + total_real_relation + "; premodifer: " + real_relation_pm + "; possessive: " + real_relation_ps
         + "; preposition: " + real_relation_pp + "; formulaic: " + real_relation_f + "; all: " + real_relation_all);
         System.out.println("Null: " + total_null_relation + "; premodifer: " + null_relation_pm + "; possessive: " + null_relation_ps

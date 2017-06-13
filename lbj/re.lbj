@@ -147,7 +147,7 @@ learn fine_relation_label
     with SupportVectorMachine{
 
     }
-    testFrom new PredictedMentionReader("data/partition/eval/0")
+    testFrom new ACEMentionReader("data/partition/eval/0", "relation_full_bi")
     progressOutput 20000
 end
 
