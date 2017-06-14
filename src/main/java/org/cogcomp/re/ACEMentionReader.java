@@ -91,7 +91,7 @@ public class ACEMentionReader implements Parser
         relations_bi = new ArrayList<Relation>();
         relation_full_bi_test = new ArrayList<Relation>();
         try {
-            ACEReader reader = new ACEReader(file, false);
+            ACEReader reader = new ACEReader(file, new String[]{"bn", "nw"}, false);
             POSAnnotator pos_annotator = new POSAnnotator();
 
             ServerClientAnnotator annotator = new ServerClientAnnotator();
@@ -141,10 +141,10 @@ public class ACEMentionReader implements Parser
                                     Relation opdir = new Relation(opTypeName, secondArg, firstArg, 1.0f);
                                     opdir.addAttribute("RelationSubtype", opTypeName);
                                     opdir.addAttribute("RelationType", r.getAttribute("RelationType") + "_OP");
-                                    if (RelationFeatureExtractor.isFourType(r)) {
+                                    if (!RelationFeatureExtractor.isFourType(r)) {
                                         relations_full_bi.add(r);
                                     }
-                                    if (RelationFeatureExtractor.isFourType(opdir)) {
+                                    if (!RelationFeatureExtractor.isFourType(opdir)) {
                                         relations_full_bi.add(opdir);
                                     }
                                     relation_full_bi_test.add(r);
@@ -166,10 +166,10 @@ public class ACEMentionReader implements Parser
                                     Relation opdir = new Relation(opTypeName, firstArg, secondArg, 1.0f);
                                     opdir.addAttribute("RelationSubtype", opTypeName);
                                     opdir.addAttribute("RelationType", r.getAttribute("RelationType") + "_OP");
-                                    if (RelationFeatureExtractor.isFourType(r)) {
+                                    if (!RelationFeatureExtractor.isFourType(r)) {
                                         relations_full_bi.add(r);
                                     }
-                                    if (RelationFeatureExtractor.isFourType(opdir)) {
+                                    if (!RelationFeatureExtractor.isFourType(opdir)) {
                                         relations_full_bi.add(opdir);
                                     }
                                     relation_full_bi_test.add(r);
@@ -221,13 +221,13 @@ public class ACEMentionReader implements Parser
                                 relations_full.add(newRelation_2);
                                 relation_full_bi_test.add(newRelation_1);
                                 relation_full_bi_test.add(newRelation_2);
-                                if (RelationFeatureExtractor.isFourType(newRelation_1)) {
+                                if (!RelationFeatureExtractor.isFourType(newRelation_1)) {
                                     relations_full_bi.add(newRelation_1);
                                 }
                                 if (rand.nextDouble() < trim_factor) {
                                     relations_full_trim.add(newRelation_1);
                                 }
-                                if (RelationFeatureExtractor.isFourType(newRelation_2)){
+                                if (!RelationFeatureExtractor.isFourType(newRelation_2)){
                                     relations_full_bi.add(newRelation_2);
                                 }
                                 if (rand.nextDouble() < trim_factor) {
