@@ -12,6 +12,7 @@ import java.util.*;
 import java.lang.*;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import org.cogcomp.re.ACERelationConstrainedClassifier;
+import org.cogcomp.re.PredictedMentionReader;
 
 public class ACERelationTester {
     public static void processList(List<Object> in, double rate){
@@ -126,7 +127,7 @@ public class ACERelationTester {
         int null_relation_all = 0;
         for (int i = 0; i < 5; i++) {
             fine_relation_label output = new fine_relation_label();
-            Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi");
+            Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi_test");
             relation_classifier classifier = new relation_classifier();
             classifier.setLexiconLocation("src/main/java/org/cogcomp/re/classifier_fold_" + i + ".lex");
             BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
@@ -134,7 +135,7 @@ public class ACERelationTester {
             classifier.setLexicon(lexicon);
             trainer.train(1, 1);
             ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
-            Parser parser_full = new ACEMentionReader("data/partition/eval/" + i, "relation_full_bi");
+            Parser parser_full = new ACEMentionReader("data/partition/eval/" + i, "relation_full_bi_test");
             for (Object example = parser_full.next(); example != null; example = parser_full.next()){
                 String predicted_label = constrainedClassifier.discreteValue(example);
                 if (predicted_label.equals("NOT_RELATED") == false){
@@ -182,9 +183,7 @@ public class ACERelationTester {
                         if (gold_label.equals("Family") || gold_label.equals("Geographical") || gold_label.equals("Employment")
                                 || gold_label.equals("Investor-Shareholder") || gold_label.equals("Near")) {
                             Relation r = (Relation) example;
-                            TextAnnotation ta = r.getSource().getTextAnnotation();
-                            outputs.add(ta.getSentence(ta.getSentenceId(r.getSource())).toString());
-                            outputs.add(r.getSource().toString() + " | " + r.getTarget().toString() + " " + gold_label + " " + predicted_label);
+
                         }
                     }
                 }
@@ -224,10 +223,11 @@ public class ACERelationTester {
                     }
                     if (RelationFeatureExtractor.isFourType(r)){
                         real_relation_all++;
-
                     }
                     else {
-                        //outputs.add(r.getSource().toString() + " | " + r.getTarget().toString() + " " + gold_label);
+                        TextAnnotation ta = r.getSource().getTextAnnotation();
+                        outputs.add(ta.getSentence(ta.getSentenceId(r.getSource())).toString());
+                        outputs.add(r.getSource().toString() + " | " + r.getTarget().toString() + " " + gold_label + " " + predicted_label);
                     }
                 }
             }
@@ -282,8 +282,8 @@ public class ACERelationTester {
                 if (gold_label.equals("NOT_RELATED") == false){
                     total_labeled ++;
                 }
-                if (getCoarseType(predicted_label).equals(getCoarseType(gold_label))){
-                //if (predicted_label.equals(gold_label)){
+                //if (getCoarseType(predicted_label).equals(getCoarseType(gold_label))){
+                if (predicted_label.equals(gold_label)){
                     if (predicted_label.equals("NOT_RELATED") == false){
                         total_correct ++;
                     }

@@ -142,12 +142,12 @@ discrete{"TRUE", "FALSE"} coref_tag(Relation r) <-{
 discrete relation_classifier(Relation r) <-
 learn fine_relation_label
     using lexical_features, collocations_features, structual_features, mention_features, template_features
-    from new ACEMentionReader("data/full/train-combined", "relation_full_bi_test")
+    from new ACEMentionReader("data/partition/train/0", "relation_full_bi_test")
     1 rounds
     with SupportVectorMachine{
 
     }
-    testFrom new ACEMentionReader("data/full/test-combined", "relation_full_bi_test")
+    testFrom new ACEMentionReader("data/partition/eval/0", "relation_full_bi_test")
     progressOutput 20000
 end
 

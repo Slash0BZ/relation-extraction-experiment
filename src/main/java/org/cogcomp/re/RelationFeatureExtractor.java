@@ -111,6 +111,9 @@ public class RelationFeatureExtractor {
     }
 
     public static boolean isPreposition(Relation r){
+        if (RelationFeatureExtractor.isPossessive(r)){
+            return false;
+        }
         Constituent source = r.getSource();
         Constituent target = r.getTarget();
         TextAnnotation ta = source.getTextAnnotation();
