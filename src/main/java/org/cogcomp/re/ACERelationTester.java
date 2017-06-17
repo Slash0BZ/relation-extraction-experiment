@@ -161,7 +161,7 @@ public class ACERelationTester {
                 String predicted_label = constrainedClassifier.discreteValue(example);
                 if (is_null(binary_classifier, example)){
                     predicted_label = "NOT_RELATED";
-                    continue;
+                    //continue;
                 }
                 if (predicted_label.equals("NOT_RELATED") == false){
                     if (pMap.containsKey(predicted_label)){
@@ -389,7 +389,7 @@ public class ACERelationTester {
             break;
         }
         if (predicted_label.equals("null")){
-            if (positive_score < 1.5){
+            if (positive_score < 1.0){
                 predicted_label = "not_null";
             }
         }
@@ -402,18 +402,39 @@ public class ACERelationTester {
         int total_labeled = 0;
         int total_predicted = 0;
         for (int i = 0; i < 5; i++) {
+            binary_relation_classifier binary_classifier = new binary_relation_classifier("models/binary_classifier_fold_" + i + ".lc",
+                    "models/binary_classifier_fold_" + i + ".lex");
             fine_relation_label output = new fine_relation_label();
             Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi_test");
             relation_classifier classifier = new relation_classifier();
-            classifier.setLexiconLocation("models/predicted_classifier_fold_" + i + ".lex");
+            classifier.setLexiconLocation("models/predicted_relation_classifier_fold_" + i + ".lex");
             BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
-            Lexicon lexicon = trainer.preExtract("models/predicted_classifier_fold_" + i + ".ex", true);
+            Learner preExtractLearner = trainer.preExtract("models/predicted_relation_classifier_fold_" + i + ".ex", true, Lexicon.CountPolicy.none);
+            preExtractLearner.saveLexicon();
+            Lexicon lexicon = preExtractLearner.getLexicon();
             classifier.setLexicon(lexicon);
-            trainer.train(1, 1);
+            int examples = 0;
+            for (Object example = train_parser.next(); example != null; example = train_parser.next()){
+                examples ++;
+            }
+            train_parser.reset();
+            classifier.initialize(examples, preExtractLearner.getLexicon().size());
+            for (Object example = train_parser.next(); example != null; example = train_parser.next()){
+                if (is_null(binary_classifier, example)){
+                    continue;
+                }
+                classifier.learn(example);
+            }
+            classifier.doneWithRound();
+            classifier.doneLearning();
             ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
             Parser parser_full = new PredictedMentionReader("data/partition/eval/" + i);
             for (Object example = parser_full.next(); example != null; example = parser_full.next()){
                 String predicted_label = constrainedClassifier.discreteValue(example);
+                if (is_null(binary_classifier, example)){
+                    //predicted_label = "NOT_RELATED";
+                    //continue;
+                }
                 if (predicted_label.equals("NOT_RELATED") == false){
                     total_predicted ++;
                 }
@@ -448,6 +469,6 @@ public class ACERelationTester {
         //delete_files();
     }
     public static void main(String[] args){
-        test_constraint();
+        test_constraint_predicted();
     }
 }
