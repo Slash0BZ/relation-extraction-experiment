@@ -396,6 +396,11 @@ constraint UOIM_OP_ET (Relation r)
                                                                    entity_label(r.getSource())::"VEH" \/
                                                                    entity_label(r.getSource())::"FAC");
 }
+constraint opposite_type_constraint (Relation r)
+{
+    forall (String s in ACEMentionReader.getTypes())
+            ((relation_classifier(r)::s) /\ (relation_classifier(ACEMentionReader.getOppoRelation(r))::ACEMentionReader.getOppoName(s)));
+}
 
 inference constrained_RE head Relation r {
     Relation r {return r;}

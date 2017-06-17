@@ -10,6 +10,7 @@ import edu.illinois.cs.cogcomp.pipeline.server.ServerClientAnnotator;
 import edu.illinois.cs.cogcomp.edison.annotators.*;
 import edu.illinois.cs.cogcomp.pos.POSAnnotator;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.lang.*;
 
@@ -66,9 +67,12 @@ public class ACEMentionReader implements Parser
         return null;
     }
 
-    public String getOppoName(String name){
-        if (name.equals("Family") || name.equals("Lasting-Personal") || name.equals("Near") || name.equals("Business")){
+    public static String getOppoName(String name){
+        if (name.equals("Family") || name.equals("Lasting-Personal") || name.equals("Near") || name.equals("Business") || name.equals("NOT_RELATED")){
             return name;
+        }
+        if (name.contains("_OP")){
+            return name.substring(0, name.length() - 3);
         }
         return name + "_OP";
     }
@@ -80,6 +84,13 @@ public class ACEMentionReader implements Parser
             return true;
         }
         return false;
+    }
+    public static List<String> getTypes(){
+        String[] arr = new String[]{"Org-Location_OP", "Employment_OP", "Lasting-Personal", "Sports-Affiliation_OP", "Founder", "Investor-Shareholder", "Founder_OP", "Sports-Affiliation", "Employment", "Located", "Subsidiary", "Org-Location", "Membership", "Citizen-Resident-Religion-Ethnicity", "Geographical_OP", "Citizen-Resident-Religion-Ethnicity_OP", "User-Owner-Inventor-Manufacturer_OP", "Business", "Subsidiary_OP", "Membership_OP", "Near", "Geographical", "Investor-Shareholder_OP", "User-Owner-Inventor-Manufacturer", "Located_OP", "Family"};
+        return new ArrayList<String>(Arrays.asList(arr));
+    }
+    public static Relation getOppoRelation(Relation r){
+        return new Relation("TO_TEST", r.getTarget(), r.getSource(), 1.0f);
     }
     public ACEMentionReader(String file, String type) {
         readType = type;

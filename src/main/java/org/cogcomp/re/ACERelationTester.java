@@ -112,7 +112,7 @@ public class ACERelationTester {
         int null_total_correct = 0;
         int null_total_labeled = 0;
         int null_total_predicted = 0;
-        List<String> outputs = new ArrayList<String>();
+
         Map<String, Integer> pMap = new HashMap<String, Integer>();
         Map<String, Integer> lMap = new HashMap<String, Integer>();
         Map<String, Integer> cMap = new HashMap<String, Integer>();
@@ -148,7 +148,7 @@ public class ACERelationTester {
             classifier.initialize(examples, preExtractLearner.getLexicon().size());
             for (Object example = train_parser.next(); example != null; example = train_parser.next()){
                 if (is_null(binary_classifier, example)){
-                    continue;
+                    //continue;
                 }
                 classifier.learn(example);
             }
@@ -158,9 +158,56 @@ public class ACERelationTester {
             ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
             Parser parser_full = new ACEMentionReader("data/partition/eval/" + i, "relation_full_bi_test");
             for (Object example = parser_full.next(); example != null; example = parser_full.next()){
+                List<String> outputs = new ArrayList<String>();
                 String predicted_label = constrainedClassifier.discreteValue(example);
+                String gold_label = output.discreteValue(example);
+                Relation r = (Relation)example;
+                Relation oppoR = new Relation("TO_TEST", r.getTarget(), r.getSource(), 1.0f);
+                String oppo_predicted_label = constrainedClassifier.discreteValue((Object)oppoR);
+                if (!predicted_label.equals(ACEMentionReader.getOppoName(oppo_predicted_label))){
+                    ScoreSet scores = classifier.scores(example);
+                    Score[] scoresArray = scores.toArray();
+                    outputs.add("Predicted: " + predicted_label);
+                    outputs.add("Gold: " + gold_label);
+                    double score_curtag = 0.0;
+                    double score_opptag = 0.0;
+                    for (Score score : scoresArray){
+                        outputs.add(score.value);
+                        outputs.add(Double.toString(score.score));
+                        if (score.value.equals(predicted_label)){
+                            score_curtag = score.score;
+                        }
+                        if (score.value.equals(ACEMentionReader.getOppoName(oppo_predicted_label))){
+                            score_opptag = score.score;
+                        }
+                    }
+                    outputs.add("Predicted_OP: " + oppo_predicted_label);
+                    scores = classifier.scores((Object)oppoR);
+                    scoresArray = scores.toArray();
+                    double oppo_score_opptag = 0.0;
+                    double oppo_score_curtag = 0.0;
+                    for (Score score : scoresArray){
+                        outputs.add(score.value);
+                        outputs.add(Double.toString(score.score));
+                        if (score.value.equals(oppo_predicted_label)){
+                            oppo_score_opptag = score.score;
+                        }
+                        if (score.value.equals(ACEMentionReader.getOppoName(predicted_label))){
+                            oppo_score_curtag = score.score;
+                        }
+                    }
+                    //if (score_curtag + oppo_score_curtag < score_opptag + oppo_score_opptag){
+                    if (score_curtag < oppo_score_opptag){
+                        predicted_label = ACEMentionReader.getOppoName(oppo_predicted_label);
+                        if (predicted_label.equals(gold_label) == false){
+                            for (String o : outputs){
+                                //System.out.println(o);
+                            }
+                        }
+                    }
+                }
                 if (is_null(binary_classifier, example)){
-                    predicted_label = "NOT_RELATED";
+                    //predicted_label = "NOT_RELATED";
                     //continue;
                 }
                 if (predicted_label.equals("NOT_RELATED") == false){
@@ -175,7 +222,7 @@ public class ACERelationTester {
                 else{
                     null_total_predicted ++;
                 }
-                String gold_label = output.discreteValue(example);
+
                 if (gold_label.equals("NOT_RELATED") == false){
                     if (lMap.containsKey(gold_label)){
                         lMap.put(gold_label, lMap.get(gold_label) + 1);
@@ -207,12 +254,10 @@ public class ACERelationTester {
                     if (gold_label.equals("NOT_RELATED") == false){
                         if (gold_label.equals("Family") || gold_label.equals("Geographical") || gold_label.equals("Employment")
                                 || gold_label.equals("Investor-Shareholder") || gold_label.equals("Near")) {
-                            Relation r = (Relation) example;
 
                         }
                     }
                 }
-                Relation r = (Relation)example;
                 if (r.getAttribute("RelationSubtype").equals("NOT_RELATED")){
                     total_null_relation++;
                     if (RelationFeatureExtractor.isPremodifier(r)){
@@ -251,8 +296,8 @@ public class ACERelationTester {
                     }
                     else {
                         TextAnnotation ta = r.getSource().getTextAnnotation();
-                        outputs.add(ta.getSentence(ta.getSentenceId(r.getSource())).toString());
-                        outputs.add(r.getSource().toString() + " | " + r.getTarget().toString() + " " + gold_label + " " + predicted_label);
+                        //outputs.add(ta.getSentence(ta.getSentenceId(r.getSource())).toString());
+                        //outputs.add(r.getSource().toString() + " | " + r.getTarget().toString() + " " + gold_label + " " + predicted_label);
                     }
                 }
             }
@@ -260,12 +305,18 @@ public class ACERelationTester {
             parser_full.reset();
             train_parser.reset();
         }
+        /*
         for (String o : outputs){
             System.out.println(o);
         }
+        */
         for (String s : lMap.keySet()){
             System.out.println(s + "\t" + lMap.get(s) + "\t" + pMap.get(s) + "\t" + cMap.get(s));
         }
+        for (String s : lMap.keySet()){
+            System.out.print("\"" + s + "\", ");
+        }
+        System.out.println();
         System.out.println("NOT_RELATED: " + null_total_predicted + " " + null_total_labeled + " " + null_total_correct);
         System.out.println("Real: " + total_real_relation + "; premodifer: " + real_relation_pm + "; possessive: " + real_relation_ps
         + "; preposition: " + real_relation_pp + "; formulaic: " + real_relation_f + "; all: " + real_relation_all);
@@ -389,7 +440,7 @@ public class ACERelationTester {
             break;
         }
         if (predicted_label.equals("null")){
-            if (positive_score < 1.0){
+            if (positive_score < 0.8){
                 predicted_label = "not_null";
             }
         }
@@ -469,6 +520,6 @@ public class ACERelationTester {
         //delete_files();
     }
     public static void main(String[] args){
-        test_constraint_predicted();
+        test_constraint();
     }
 }
