@@ -1,5 +1,8 @@
 package org.cogcomp.re;
 
+import edu.illinois.cs.cogcomp.lbjava.classify.Classifier;
+import edu.illinois.cs.cogcomp.lbjava.classify.Score;
+import edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet;
 import edu.illinois.cs.cogcomp.lbjava.classify.TestDiscrete;
 import org.cogcomp.re.*;
 import edu.illinois.cs.cogcomp.lbjava.learn.*;
@@ -129,15 +132,32 @@ public class ACERelationTester {
             fine_relation_label output = new fine_relation_label();
             Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi_test");
             relation_classifier classifier = new relation_classifier();
-            classifier.setLexiconLocation("src/main/java/org/cogcomp/re/classifier_fold_" + i + ".lex");
+            classifier.setLexiconLocation("src/main/java/org/cogcomp/re/relation_classifier_fold_" + i + ".lex");
             BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
-            Lexicon lexicon = trainer.preExtract("src/main/java/org/cogcomp/re/classifier_fold_" + i + ".ex", true);
+            Learner preExtractLearner = trainer.preExtract("src/main/java/org/cogcomp/re/relation_classifier_fold_" + i + ".ex", true, Lexicon.CountPolicy.none);
+            preExtractLearner.saveLexicon();
+            Lexicon lexicon = preExtractLearner.getLexicon();
             classifier.setLexicon(lexicon);
-            trainer.train(1, 1);
+            int examples = 0;
+            for (Object example = train_parser.next(); example != null; example = train_parser.next()){
+                examples ++;
+            }
+            train_parser.reset();
+            classifier.initialize(examples, preExtractLearner.getLexicon().size());
+            for (Object example = train_parser.next(); example != null; example = train_parser.next()){
+                classifier.learn(example);
+            }
+            classifier.doneWithRound();
+            classifier.doneLearning();
+            binary_relation_classifier binary_classifier = new binary_relation_classifier("src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".lc",
+                    "src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".lex");
             ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
             Parser parser_full = new ACEMentionReader("data/partition/eval/" + i, "relation_full_bi_test");
             for (Object example = parser_full.next(); example != null; example = parser_full.next()){
                 String predicted_label = constrainedClassifier.discreteValue(example);
+                if (is_null(binary_classifier, example)){
+                    predicted_label = "NOT_RELATED";
+                }
                 if (predicted_label.equals("NOT_RELATED") == false){
                     if (pMap.containsKey(predicted_label)){
                         pMap.put(predicted_label, pMap.get(predicted_label) + 1);
@@ -256,6 +276,120 @@ public class ACERelationTester {
         System.out.println("Recall: " + r);
         System.out.println("F1: " + f);
         //delete_files();
+    }
+
+    public static void test_binary(){
+        Map<String, Integer> pMap = new HashMap<String, Integer>();
+        Map<String, Integer> lMap = new HashMap<String, Integer>();
+        Map<String, Integer> cMap = new HashMap<String, Integer>();
+        for (int i = 0; i < 5; i++) {
+            is_null_label output = new is_null_label();
+/*
+            Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi_test");
+            binary_relation_classifier classifier = new binary_relation_classifier();
+            classifier.setLexiconLocation("src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".lex");
+            BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
+            Lexicon lexicon = trainer.preExtract("src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".ex", true);
+            classifier.setLexicon(lexicon);
+            trainer.train(1, 1);
+            classifier.setModelLocation("src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".lc");
+            classifier.save();
+*/
+            binary_relation_classifier classifier = new binary_relation_classifier("src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".lc",
+                    "src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".lex");
+            Parser parser_full = new ACEMentionReader("data/partition/eval/" + i, "relation_full_bi_test");
+            for (Object example = parser_full.next(); example != null; example = parser_full.next()){
+/*
+                String predicted_label = classifier.discreteValue(example);
+                ScoreSet scores = classifier.scores(example);
+                Score[] scoresArray = scores.toArray();
+                double positive_score = 0.0;
+                for (Score score : scoresArray){
+                    if (score.score < 0){
+                        positive_score = -score.score;
+                    }
+                    else{
+                        positive_score = score.score;
+                    }
+                    break;
+                }
+                boolean changed = false;
+                if (predicted_label.equals("null")){
+                    if (positive_score < 1.5){
+                        predicted_label = "not_null";
+                        changed = true;
+                    }
+                }
+*/
+
+                String predicted_label = "not_null";
+                if (is_null(classifier, example)){
+                    predicted_label = "null";
+                }
+                if (pMap.containsKey(predicted_label)){
+                    pMap.put(predicted_label, pMap.get(predicted_label) + 1);
+                }
+                else{
+                    pMap.put(predicted_label, 1);
+                }
+                String gold_label = output.discreteValue(example);
+                if (lMap.containsKey(gold_label)){
+                    lMap.put(gold_label, lMap.get(gold_label) + 1);
+                }
+                else{
+                    lMap.put(gold_label, 1);
+                }
+                if (predicted_label.equals(gold_label)){
+                    if (cMap.containsKey(gold_label)){
+                        cMap.put(gold_label, cMap.get(gold_label) + 1);
+                    }
+                    else{
+                        cMap.put(gold_label, 1);
+                    }
+                }
+                /*
+                else{
+                    if (gold_label.equals("not_null") && positive_score > 3.0){
+                        Relation r = (Relation)example;
+                        TextAnnotation ta = r.getSource().getTextAnnotation();
+                        System.out.println(ta.getSentence(ta.getSentenceId(r.getSource())).toString());
+                        System.out.println(r.getSource().toString() + " | " + r.getTarget().toString() + " " + gold_label + " " + predicted_label);
+                    }
+                }
+                */
+            }
+/*
+            classifier.forget();
+            parser_full.reset();
+            train_parser.reset();
+*/
+        }
+        for (String s : lMap.keySet()){
+            System.out.println(s + "\t" + lMap.get(s) + "\t" + pMap.get(s) + "\t" + cMap.get(s));
+        }
+    }
+
+    public static boolean is_null(Learner classifier, Object example){
+        String predicted_label = classifier.discreteValue(example);
+        ScoreSet scores = classifier.scores(example);
+        Score[] scoresArray = scores.toArray();
+        double positive_score = 0.0;
+        for (Score score : scoresArray){
+            if (score.score < 0){
+                positive_score = -score.score;
+            }
+            else{
+                positive_score = score.score;
+            }
+            break;
+        }
+        if (predicted_label.equals("null")){
+            if (positive_score < 1.5){
+                predicted_label = "not_null";
+            }
+        }
+        if (predicted_label.equals("null")) return true;
+        return false;
     }
 
     public static void test_constraint_predicted(){
