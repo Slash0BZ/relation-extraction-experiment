@@ -170,8 +170,8 @@ public class PredictedMentionReader implements Parser{
         relations = new ArrayList<Relation>();
         try {
             ACEReader aceReader = new ACEReader(path, false);
-            entity_type_classifier etc = new entity_type_classifier();
-            entity_subtype_classifier esc = new entity_subtype_classifier();
+            entity_type_classifier etc = new entity_type_classifier("models/entity_type_classifier.lc", "models/entity_type_classifier.lex");
+            entity_subtype_classifier esc = new entity_subtype_classifier("models/entity_subtype_classifier.lc", "models/entity_subtype_classifier.lex");
             POSAnnotator pos_annotator = new POSAnnotator();
             ServerClientAnnotator annotator = new ServerClientAnnotator();
             annotator.setUrl("http://localhost", "8080");

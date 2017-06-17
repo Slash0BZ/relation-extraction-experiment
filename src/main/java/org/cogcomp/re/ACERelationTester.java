@@ -129,12 +129,14 @@ public class ACERelationTester {
         int null_relation_f = 0;
         int null_relation_all = 0;
         for (int i = 0; i < 5; i++) {
+            binary_relation_classifier binary_classifier = new binary_relation_classifier("models/binary_classifier_fold_" + i + ".lc",
+                    "models/binary_classifier_fold_" + i + ".lex");
             fine_relation_label output = new fine_relation_label();
             Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi_test");
             relation_classifier classifier = new relation_classifier();
-            classifier.setLexiconLocation("src/main/java/org/cogcomp/re/relation_classifier_fold_" + i + ".lex");
+            classifier.setLexiconLocation("models/relation_classifier_fold_" + i + ".lex");
             BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
-            Learner preExtractLearner = trainer.preExtract("src/main/java/org/cogcomp/re/relation_classifier_fold_" + i + ".ex", true, Lexicon.CountPolicy.none);
+            Learner preExtractLearner = trainer.preExtract("models/relation_classifier_fold_" + i + ".ex", true, Lexicon.CountPolicy.none);
             preExtractLearner.saveLexicon();
             Lexicon lexicon = preExtractLearner.getLexicon();
             classifier.setLexicon(lexicon);
@@ -145,18 +147,21 @@ public class ACERelationTester {
             train_parser.reset();
             classifier.initialize(examples, preExtractLearner.getLexicon().size());
             for (Object example = train_parser.next(); example != null; example = train_parser.next()){
+                if (is_null(binary_classifier, example)){
+                    continue;
+                }
                 classifier.learn(example);
             }
             classifier.doneWithRound();
             classifier.doneLearning();
-            binary_relation_classifier binary_classifier = new binary_relation_classifier("src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".lc",
-                    "src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".lex");
+
             ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
             Parser parser_full = new ACEMentionReader("data/partition/eval/" + i, "relation_full_bi_test");
             for (Object example = parser_full.next(); example != null; example = parser_full.next()){
                 String predicted_label = constrainedClassifier.discreteValue(example);
                 if (is_null(binary_classifier, example)){
                     predicted_label = "NOT_RELATED";
+                    continue;
                 }
                 if (predicted_label.equals("NOT_RELATED") == false){
                     if (pMap.containsKey(predicted_label)){
@@ -287,16 +292,16 @@ public class ACERelationTester {
 /*
             Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi_test");
             binary_relation_classifier classifier = new binary_relation_classifier();
-            classifier.setLexiconLocation("src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".lex");
+            classifier.setLexiconLocation("models/binary_classifier_fold_" + i + ".lex");
             BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
-            Lexicon lexicon = trainer.preExtract("src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".ex", true);
+            Lexicon lexicon = trainer.preExtract("models/re/binary_classifier_fold_" + i + ".ex", true);
             classifier.setLexicon(lexicon);
             trainer.train(1, 1);
-            classifier.setModelLocation("src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".lc");
+            classifier.setModelLocation("models/binary_classifier_fold_" + i + ".lc");
             classifier.save();
 */
-            binary_relation_classifier classifier = new binary_relation_classifier("src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".lc",
-                    "src/main/java/org/cogcomp/re/binary_classifier_fold_" + i + ".lex");
+            binary_relation_classifier classifier = new binary_relation_classifier("models/binary_classifier_fold_" + i + ".lc",
+                    "models/binary_classifier_fold_" + i + ".lex");
             Parser parser_full = new ACEMentionReader("data/partition/eval/" + i, "relation_full_bi_test");
             for (Object example = parser_full.next(); example != null; example = parser_full.next()){
 /*
@@ -398,11 +403,11 @@ public class ACERelationTester {
         int total_predicted = 0;
         for (int i = 0; i < 5; i++) {
             fine_relation_label output = new fine_relation_label();
-            Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi");
+            Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi_test");
             relation_classifier classifier = new relation_classifier();
-            classifier.setLexiconLocation("src/main/java/org/cogcomp/re/classifier_fold_" + i + ".lex");
+            classifier.setLexiconLocation("models/predicted_classifier_fold_" + i + ".lex");
             BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
-            Lexicon lexicon = trainer.preExtract("src/main/java/org/cogcomp/re/classifier_fold_" + i + ".ex", true);
+            Lexicon lexicon = trainer.preExtract("models/predicted_classifier_fold_" + i + ".ex", true);
             classifier.setLexicon(lexicon);
             trainer.train(1, 1);
             ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
