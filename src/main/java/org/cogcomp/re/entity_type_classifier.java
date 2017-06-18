@@ -10,7 +10,8 @@ import edu.illinois.cs.cogcomp.lbjava.io.IOUtilities;
 import edu.illinois.cs.cogcomp.lbjava.learn.*;
 import edu.illinois.cs.cogcomp.lbjava.parse.*;
 
-
+import java.io.File;
+import java.net.URL;
 
 
 public class entity_type_classifier extends SupportVectorMachine
@@ -20,8 +21,13 @@ public class entity_type_classifier extends SupportVectorMachine
 
   static
   {
-    _lcFilePath = entity_type_classifier.class.getResource("entity_type_classifier.lc");
-    _lexFilePath = entity_type_classifier.class.getResource("entity_type_classifier.lex");
+    try {
+      _lcFilePath = new URL("file:models/entity_type_classifier.lc");
+      _lexFilePath = new URL("file:models/entity_type_classifier.lex");
+    }
+    catch (Exception e){
+
+    }
   }
 
   private static void loadInstance()

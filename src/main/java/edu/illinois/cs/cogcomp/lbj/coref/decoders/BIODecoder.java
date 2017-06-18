@@ -3,11 +3,14 @@ package edu.illinois.cs.cogcomp.lbj.coref.decoders;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.illinois.cs.cogcomp.lbj.coref.learned.MentionDetectorMyBIOHead;
 import edu.illinois.cs.cogcomp.lbjava.classify.Classifier;
 import edu.illinois.cs.cogcomp.lbj.coref.ir.Chunk;
 import edu.illinois.cs.cogcomp.lbj.coref.ir.docs.Doc;
 import edu.illinois.cs.cogcomp.lbj.coref.ir.examples.BIOExample;
 import edu.illinois.cs.cogcomp.lbj.coref.ir.solutions.ChunkSolution;
+import edu.illinois.cs.cogcomp.lbjava.classify.Score;
+import edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet;
 
 
 /**
@@ -48,6 +51,31 @@ public class BIODecoder extends ChunkDecoder {
 	for (int i = firstWN; i < n; ++i) {
 	    BIOExample ex = new BIOExample(doc, i, 'u', prevEx); //'u'=unknown.
 	    char bio = m_classifier.discreteValue(ex).charAt(0);
+	    ScoreSet scores = ((MentionDetectorMyBIOHead)m_classifier).scores(ex);
+		Score[] scoresArray = scores.toArray();
+		double b_score = 0.0;
+		double i_score = 0.0;
+		double o_score = 0.0;
+		for (Score score : scoresArray){
+			if (score.value.equals("b")){
+				b_score = score.score;
+			}
+			if (score.value.equals("i")){
+				i_score = score.score;
+			}
+			if (score.value.equals("o")){
+				o_score = score.score;
+			}
+		}
+		/*
+		if (bio == 'o'){
+			if (o_score < 10.0){
+				if (b_score > -10.0){
+					bio = 'b';
+				}
+			}
+		}
+		*/
 	    if (bio == 'o') {
 		if (prevBIO != 'o') { //End previous word:
 		    if (start > i-1)

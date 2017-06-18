@@ -461,7 +461,7 @@ public class ACERelationTester {
             classifier.initialize(examples, preExtractLearner.getLexicon().size());
             for (Object example = train_parser.next(); example != null; example = train_parser.next()){
                 if (is_null(binary_classifier, example)){
-                    continue;
+                    //continue;
                 }
                 classifier.learn(example);
             }
@@ -472,7 +472,7 @@ public class ACERelationTester {
             for (Object example = parser_full.next(); example != null; example = parser_full.next()){
                 String predicted_label = constrainedClassifier.discreteValue(example);
                 if (is_null(binary_classifier, example)){
-                    //predicted_label = "NOT_RELATED";
+                    predicted_label = "NOT_RELATED";
                     //continue;
                 }
                 if (predicted_label.equals("NOT_RELATED") == false){
@@ -509,6 +509,6 @@ public class ACERelationTester {
         //delete_files();
     }
     public static void main(String[] args){
-        test_constraint();
+        test_constraint_predicted();
     }
 }
