@@ -112,7 +112,7 @@ public class RelationFeatureExtractor {
 
     public static boolean isPreposition(Relation r){
         if (RelationFeatureExtractor.isPossessive(r)){
-            return false;
+            //return false;
         }
         Constituent source = r.getSource();
         Constituent target = r.getTarget();

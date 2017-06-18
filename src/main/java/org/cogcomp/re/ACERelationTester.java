@@ -148,7 +148,7 @@ public class ACERelationTester {
             classifier.initialize(examples, preExtractLearner.getLexicon().size());
             for (Object example = train_parser.next(); example != null; example = train_parser.next()){
                 if (is_null(binary_classifier, example)){
-                    //continue;
+                    continue;
                 }
                 classifier.learn(example);
             }
@@ -167,13 +167,9 @@ public class ACERelationTester {
                 if (!predicted_label.equals(ACEMentionReader.getOppoName(oppo_predicted_label))){
                     ScoreSet scores = classifier.scores(example);
                     Score[] scoresArray = scores.toArray();
-                    outputs.add("Predicted: " + predicted_label);
-                    outputs.add("Gold: " + gold_label);
                     double score_curtag = 0.0;
                     double score_opptag = 0.0;
                     for (Score score : scoresArray){
-                        outputs.add(score.value);
-                        outputs.add(Double.toString(score.score));
                         if (score.value.equals(predicted_label)){
                             score_curtag = score.score;
                         }
@@ -181,14 +177,11 @@ public class ACERelationTester {
                             score_opptag = score.score;
                         }
                     }
-                    outputs.add("Predicted_OP: " + oppo_predicted_label);
                     scores = classifier.scores((Object)oppoR);
                     scoresArray = scores.toArray();
                     double oppo_score_opptag = 0.0;
                     double oppo_score_curtag = 0.0;
                     for (Score score : scoresArray){
-                        outputs.add(score.value);
-                        outputs.add(Double.toString(score.score));
                         if (score.value.equals(oppo_predicted_label)){
                             oppo_score_opptag = score.score;
                         }
@@ -197,7 +190,7 @@ public class ACERelationTester {
                         }
                     }
                     //if (score_curtag + oppo_score_curtag < score_opptag + oppo_score_opptag){
-                    if (score_curtag < oppo_score_opptag){
+                    if (score_curtag < oppo_score_opptag && oppo_score_opptag - score_curtag > 0.005){
                         predicted_label = ACEMentionReader.getOppoName(oppo_predicted_label);
                         if (predicted_label.equals(gold_label) == false){
                             for (String o : outputs){
@@ -207,7 +200,7 @@ public class ACERelationTester {
                     }
                 }
                 if (is_null(binary_classifier, example)){
-                    //predicted_label = "NOT_RELATED";
+                    predicted_label = "NOT_RELATED";
                     //continue;
                 }
                 if (predicted_label.equals("NOT_RELATED") == false){
@@ -313,10 +306,6 @@ public class ACERelationTester {
         for (String s : lMap.keySet()){
             System.out.println(s + "\t" + lMap.get(s) + "\t" + pMap.get(s) + "\t" + cMap.get(s));
         }
-        for (String s : lMap.keySet()){
-            System.out.print("\"" + s + "\", ");
-        }
-        System.out.println();
         System.out.println("NOT_RELATED: " + null_total_predicted + " " + null_total_labeled + " " + null_total_correct);
         System.out.println("Real: " + total_real_relation + "; premodifer: " + real_relation_pm + "; possessive: " + real_relation_ps
         + "; preposition: " + real_relation_pp + "; formulaic: " + real_relation_f + "; all: " + real_relation_all);
@@ -440,7 +429,7 @@ public class ACERelationTester {
             break;
         }
         if (predicted_label.equals("null")){
-            if (positive_score < 0.8){
+            if (positive_score < 1.0){
                 predicted_label = "not_null";
             }
         }
