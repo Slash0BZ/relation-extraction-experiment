@@ -202,9 +202,10 @@ public class PredictedMentionReader implements Parser{
                     for (Constituent pc : predictedView.getConstituents()){
                         Constituent ch = getEntityHeadForConstituent(c, ta, "TESTG");
                         Constituent pch = getEntityHeadForConstituent(pc, ta, "TESTP");
-                        if (ch.getStartSpan() == pch.getStartSpan() && ch.getEndSpan() == pch.getEndSpan()){
-                            consMap.put(c, pc);
-                            break;
+                        //if (ch.getStartSpan() == pch.getStartSpan() && ch.getEndSpan() == pch.getEndSpan()){
+                        if ((ch.getStartSpan() >= pch.getEndSpan() || pch.getStartSpan() >= ch.getEndSpan()) == false){
+                                consMap.put(c, pc);
+                                break;
                         }
                     }
                 }
@@ -276,10 +277,16 @@ public class PredictedMentionReader implements Parser{
                                 Constituent gold_target_head = getEntityHeadForConstituent(r.getTarget(), ta, "EntityGoldHeads");
                                 Constituent predicted_source_head = getEntityHeadForConstituent(source, ta, "EntityPredictedHeads");
                                 Constituent predicted_target_head = getEntityHeadForConstituent(target, ta, "EntityPredictedHeads");
+                                /*
                                 if (gold_source_head.getStartSpan() == predicted_source_head.getStartSpan()
                                         && gold_source_head.getEndSpan() == predicted_source_head.getEndSpan()
                                         && gold_target_head.getStartSpan() == predicted_target_head.getStartSpan()
                                         && gold_target_head.getEndSpan() == predicted_target_head.getEndSpan()){
+                                        */
+                                if (consMap.get(r.getSource()) == null || consMap.get(r.getTarget()) == null){
+                                    continue;
+                                }
+                                if (consMap.get(r.getSource()).equals(source) && consMap.get(r.getTarget()).equals(target)){
                                     if (skipTypes(r.getAttribute("RelationSubtype"))) continue;
                                     Relation newRelation = new Relation(r.getAttribute("RelationSubtype"), source, target, 1.0f);
                                     newRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
@@ -293,10 +300,13 @@ public class PredictedMentionReader implements Parser{
                                     found_tag = true;
                                     break;
                                 }
+                                /*
                                 else if (gold_target_head.getStartSpan() == predicted_source_head.getStartSpan()
                                         && gold_target_head.getEndSpan() == predicted_source_head.getEndSpan()
                                         && gold_source_head.getStartSpan() == predicted_target_head.getStartSpan()
                                         && gold_source_head.getEndSpan() == predicted_target_head.getEndSpan()){
+                                */
+                                else if (consMap.get(r.getTarget()).equals(source) && consMap.get(r.getSource()).equals(target)){
                                     if (skipTypes(r.getAttribute("RelationSubtype"))) continue;
                                     Relation newRelation = new Relation(r.getAttribute("RelationSubtype"), target, source, 1.0f);
                                     newRelation.addAttribute("RelationType", r.getAttribute("RelationType"));

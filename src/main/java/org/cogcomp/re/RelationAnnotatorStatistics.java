@@ -38,7 +38,7 @@ public class RelationAnnotatorStatistics {
 
     public static void main (String[] args){
         try{
-            ACEReader aceReader = new ACEReader("data/partition/eval/4", false);
+            ACEReader aceReader = new ACEReader("data/partition/eval/1", false);
             int total_count = 0;
             int total_match = 0;
             int mention_type_match = 0;
@@ -55,14 +55,20 @@ public class RelationAnnotatorStatistics {
                     c.addAttribute("EntityType", entity_type);
                     c.addAttribute("EntitySubtype", entity_subtype);
                     predictedMentionWithTypes.add(c);
+                    //System.out.println(getEntityHeadForConstituent(c, ta, "A").toString());
                 }
                 for (Constituent c : ta.getView(ViewNames.MENTION_ACE).getConstituents()){
                     consMap.put(c,null);
                     for (Constituent pc : predictedMentionWithTypes){
                         Constituent ch = getEntityHeadForConstituent(c, ta, "TESTG");
                         Constituent pch = getEntityHeadForConstituent(pc, ta, "TESTP");
-                        if (ch.getStartSpan() == pch.getStartSpan() && ch.getEndSpan() == pch.getEndSpan()){
+                        //if (ch.getStartSpan() == pch.getStartSpan() && ch.getEndSpan() == pch.getEndSpan()){
+                        if ((ch.getStartSpan() >= pch.getEndSpan() || pch.getStartSpan() >= ch.getEndSpan()) == false){
                             consMap.put(c, pc);
+                            if (!(ch.getStartSpan() == pch.getStartSpan()) || !(ch.getEndSpan() == pch.getEndSpan())){
+                                System.out.println("gold: " + ch.toString());
+                                System.out.println("predicted: " + pch.toString());
+                            }
                             break;
                         }
                     }
@@ -83,7 +89,14 @@ public class RelationAnnotatorStatistics {
                             }
                         }
                     }
+                    else {
+                        if (consMap.get(r.getSource()) == null){
+                            //System.out.println(ta.getSentence(ta.getSentenceId(r.getSource())));
+                            //System.out.println(getEntityHeadForConstituent(r.getSource(), ta, "A").toString());
+                        }
+                    }
                 }
+                //break;
             }
             System.out.println("Total count: " + total_count);
             System.out.println("Total match: " + total_match);

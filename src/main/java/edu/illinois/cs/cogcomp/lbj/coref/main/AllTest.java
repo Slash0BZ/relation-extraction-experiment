@@ -73,8 +73,8 @@ public class AllTest {
 			e.printStackTrace();
 		}
 		MentionDecoder mdDec =
-				new ExtendHeadsDecoder(new MDExtendHeads("models/default_md_extent.lc", "models/default_md_extent.lex"),
-						new BIODecoder(new MentionDetectorMyBIOHead("models/default_md_head.lc", "models/default_md_head.lex")));
+				new ExtendHeadsDecoder(new MDExtendHeads("models/md_extent.lc", "models/md_extent.lex"),
+						new BIODecoder(new MentionDetectorMyBIOHead("models/md_head.lc", "models/md_head.lex")));
 		MTypePredictor mTyper = new MTypePredictor("models/md_tmp_type.lc", "models/md_tmp_type.lex");
 		DocLoader loader = new DocFromTaLoader(mdDec, mTyper);
 		Doc doc_test = loader.loadDoc(ta);

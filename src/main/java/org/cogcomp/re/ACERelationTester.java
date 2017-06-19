@@ -441,7 +441,7 @@ public class ACERelationTester {
         int total_correct = 0;
         int total_labeled = 0;
         int total_predicted = 0;
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 5; i++) {
             binary_relation_classifier binary_classifier = new binary_relation_classifier("models/binary_classifier_fold_" + i + ".lc",
                     "models/binary_classifier_fold_" + i + ".lex");
             fine_relation_label output = new fine_relation_label();

@@ -67,15 +67,12 @@ public class BIODecoder extends ChunkDecoder {
 				o_score = score.score;
 			}
 		}
-		/*
 		if (bio == 'o'){
-			if (o_score < 5.0){
-				if (b_score > -5.0){
-					bio = 'b';
-				}
+			if (o_score < 1.0){
+				//bio = b_score > i_score ? 'b' : 'i';
 			}
 		}
-		*/
+
 	    if (bio == 'o') {
 		if (prevBIO != 'o') { //End previous word:
 		    if (start > i-1)
