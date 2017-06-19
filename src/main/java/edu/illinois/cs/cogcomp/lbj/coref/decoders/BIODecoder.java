@@ -69,8 +69,8 @@ public class BIODecoder extends ChunkDecoder {
 		}
 		/*
 		if (bio == 'o'){
-			if (o_score < 10.0){
-				if (b_score > -10.0){
+			if (o_score < 5.0){
+				if (b_score > -5.0){
 					bio = 'b';
 				}
 			}
