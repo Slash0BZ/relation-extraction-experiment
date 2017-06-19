@@ -203,6 +203,18 @@ public class ACERelationTester {
                     predicted_label = "NOT_RELATED";
                     //continue;
                 }
+                ScoreSet scores = classifier.scores(example);
+                Score[] scoresArray = scores.toArray();
+                double score_curtag = 0.0;
+                for (Score score : scoresArray){
+                    if (score.value.equals(predicted_label)){
+                        score_curtag = score.score;
+                        break;
+                    }
+                }
+                if (score_curtag < 0.5){
+                    predicted_label = "NOT_RELATED";
+                }
                 if (predicted_label.equals("NOT_RELATED") == false){
                     if (pMap.containsKey(predicted_label)){
                         pMap.put(predicted_label, pMap.get(predicted_label) + 1);
@@ -509,6 +521,6 @@ public class ACERelationTester {
         //delete_files();
     }
     public static void main(String[] args){
-        test_constraint_predicted();
+        test_constraint();
     }
 }
