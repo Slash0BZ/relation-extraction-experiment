@@ -10,12 +10,14 @@ import java.util.Set;
 import org.apache.commons.lang.ArrayUtils;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
+import org.mapdb.HTreeMap;
 
 import edu.illinois.cs.cogcomp.lbj.coref.ir.Triple;
 import edu.illinois.cs.cogcomp.profiler.profilerclient.ProfilerClient;
 import edu.illinois.cs.cogcomp.profiler.profilerclient.models.Entity;
 import edu.illinois.cs.cogcomp.profiler.profilerclient.models.Profile;
 import edu.illinois.cs.cogcomp.profiler.profilerclient.models.Profile.ContextType;
+import org.mapdb.Serializer;
 
 /* Context available (as in Profile.ContextType):
 - NER: Ner Tags
@@ -90,7 +92,7 @@ public class ProfilerFeature {
 	public static String pass = "profiler";
 	public static ProfilerClient profilerClient = null; 
 	public static DB db = null;
-	public static Map<String,Long> myMap = null;
+	public static HTreeMap<String,Long> myMap = null;
 	public static ReadVerbFrames vf = null;
 	public static NounFormsExtractor nf = null;
 
@@ -105,14 +107,17 @@ public class ProfilerFeature {
 	public static void setup() {
 		System.out.println("Old Profiler Setup!");
 		String mapdbF = "/shared/shelley/khashab2/CorporaAndDumps/ngrams/1gram_mapdb"; 
-		db = DBMaker.newFileDB(new File(mapdbF))
+		db = DBMaker.fileDB(new File(mapdbF))
 				.readOnly()
 				.make();
 		
 		// Create a Map:
 		//long max = 1024908267229;
 		long max = (long) 10E6;
-		myMap = db.getHashMap("themap");
+		myMap = db.hashMap("themap")
+				.keySerializer(Serializer.STRING)
+				.valueSerializer(Serializer.LONG)
+				.createOrOpen();
 
 		try {
 			profilerClient = new ProfilerClient(host, port, user, pass);

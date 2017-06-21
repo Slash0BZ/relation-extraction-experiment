@@ -6,9 +6,9 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.lbjava.parse.Parser;
 import edu.illinois.cs.cogcomp.pipeline.server.ServerClientAnnotator;
-//import edu.illinois.cs.cogcomp.pos.*;
 import edu.illinois.cs.cogcomp.edison.annotators.*;
 import edu.illinois.cs.cogcomp.pos.POSAnnotator;
+import edu.illinois.cs.cogcomp.pipeline.handlers.StanfordTrueCaseHandler;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -101,6 +101,7 @@ public class ACEMentionReader implements Parser
         relations_full_bi = new ArrayList<Relation>();
         relations_bi = new ArrayList<Relation>();
         relation_full_bi_test = new ArrayList<Relation>();
+
         try {
             ACEReader reader = new ACEReader(file, new String[]{"bn", "nw"}, false);
             POSAnnotator pos_annotator = new POSAnnotator();
@@ -112,6 +113,7 @@ public class ACEMentionReader implements Parser
             BrownClusterViewGenerator bc_annotator = new BrownClusterViewGenerator("c1000", BrownClusterViewGenerator.file1000);
             ChunkerAnnotator chunker  = new ChunkerAnnotator(true);
             chunker.initialize(new ChunkerConfigurator().getDefaultConfig());
+            StanfordTrueCaseHandler stanfordTrueCaseHandler = new StanfordTrueCaseHandler();
             Map<Integer, Integer> distMap = new HashMap<Integer, Integer>();
             for (TextAnnotation ta : reader) {
                 ta.addView(pos_annotator);

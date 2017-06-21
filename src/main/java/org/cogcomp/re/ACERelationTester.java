@@ -213,7 +213,7 @@ public class ACERelationTester {
                     }
                 }
                 if (score_curtag < 0.5){
-                    predicted_label = "NOT_RELATED";
+                    //predicted_label = "NOT_RELATED";
                 }
                 if (predicted_label.equals("NOT_RELATED") == false){
                     if (pMap.containsKey(predicted_label)){
@@ -240,8 +240,8 @@ public class ACERelationTester {
                 else {
                     null_total_labeled ++;
                 }
-                //if (getCoarseType(predicted_label).equals(getCoarseType(gold_label))){
-                if (predicted_label.equals(gold_label)){
+                if (getCoarseType(predicted_label).equals(getCoarseType(gold_label))){
+                //if (predicted_label.equals(gold_label)){
                     if (predicted_label.equals("NOT_RELATED") == false){
                         if (cMap.containsKey(gold_label)){
                             cMap.put(gold_label, cMap.get(gold_label) + 1);
@@ -494,8 +494,8 @@ public class ACERelationTester {
                 if (gold_label.equals("NOT_RELATED") == false){
                     total_labeled ++;
                 }
-                //if (getCoarseType(predicted_label).equals(getCoarseType(gold_label))){
-                if (predicted_label.equals(gold_label)){
+                if (getCoarseType(predicted_label).equals(getCoarseType(gold_label))){
+                //if (predicted_label.equals(gold_label)){
                     if (predicted_label.equals("NOT_RELATED") == false){
                         total_correct ++;
                     }
@@ -521,6 +521,6 @@ public class ACERelationTester {
         //delete_files();
     }
     public static void main(String[] args){
-        test_constraint();
+        test_constraint_predicted();
     }
 }
