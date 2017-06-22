@@ -38,11 +38,14 @@ public class RelationAnnotatorStatistics {
 
     public static void main (String[] args){
         try{
-            ACEReader aceReader = new ACEReader("data/partition/eval/2", false);
+            ACEReader aceReader = new ACEReader("data/partition/eval/4", false);
             int total_count = 0;
             int total_match = 0;
             int mention_type_match = 0;
             int mention_subtype_match = 0;
+            int total_labeled_mention = 0;
+            int total_predicted_mention = 0;
+            int total_correct_mention = 0;
             entity_type_classifier etc = new entity_type_classifier();
             entity_subtype_classifier esc = new entity_subtype_classifier();
             for (TextAnnotation ta : aceReader){
@@ -55,7 +58,6 @@ public class RelationAnnotatorStatistics {
                     c.addAttribute("EntityType", entity_type);
                     c.addAttribute("EntitySubtype", entity_subtype);
                     predictedMentionWithTypes.add(c);
-                    //System.out.println(getEntityHeadForConstituent(c, ta, "A").toString());
                 }
                 for (Constituent c : ta.getView(ViewNames.MENTION_ACE).getConstituents()){
                     consMap.put(c,null);
@@ -71,6 +73,14 @@ public class RelationAnnotatorStatistics {
                             }
                             break;
                         }
+                    }
+                }
+                List<Constituent> goldMentions = ta.getView(ViewNames.MENTION_ACE).getConstituents();
+                total_labeled_mention += goldMentions.size();
+                total_predicted_mention += predictedMentionWithTypes.size();
+                for (Constituent c : goldMentions){
+                    if (consMap.get(c) != null){
+                        total_correct_mention ++;
                     }
                 }
                 List<Relation> goldRelations = ta.getView(ViewNames.MENTION_ACE).getRelations();
@@ -98,10 +108,15 @@ public class RelationAnnotatorStatistics {
                 }
                 //break;
             }
+            System.out.println("=======Relation Performance======");
             System.out.println("Total count: " + total_count);
             System.out.println("Total match: " + total_match);
             System.out.println("Type match: " + mention_type_match);
             System.out.println("Subtype match: " + mention_subtype_match);
+            System.out.println("\n=======Mention Performance======");
+            System.out.println("Total labeled mention: " + total_labeled_mention);
+            System.out.println("Total predicted mention: " + total_predicted_mention);
+            System.out.println("Total correct mention: " + total_correct_mention);
         }
         catch (Exception e){
             e.printStackTrace();

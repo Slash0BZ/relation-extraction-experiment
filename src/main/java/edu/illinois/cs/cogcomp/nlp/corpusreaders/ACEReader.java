@@ -157,6 +157,49 @@ public class ACEReader extends AnnotationReader<TextAnnotation> {
         return null;
     }
 
+    public static TextAnnotation getTrueCaseTextAnnotation(TextAnnotation ta){
+        try {
+            StanfordTrueCaseHandler stc = new StanfordTrueCaseHandler();
+            stc.addView(ta);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        View trueCaseView = ta.getView("STANFORD_TRUE_CASE");
+        String resText = ta.getText();
+        char[] resTextChar = resText.toCharArray();
+        int consIdx = 0;
+        List<Constituent> tokens = ta.getView(ViewNames.TOKENS).getConstituents();
+        for (int i = 0; i < resText.length(); i++){
+            if (resTextChar[i] == ' ' || resTextChar[i] == '\t' || resTextChar[i] == '\r'){
+                continue;
+            }
+            String curToken = tokens.get(consIdx).toString();
+            if (trueCaseView.getConstituentsCovering(tokens.get(consIdx)).size() > 0){
+                String trueCaseCurToken = trueCaseView.getConstituentsCovering(tokens.get(consIdx)).get(0).getLabel();
+                if (curToken.length() == trueCaseCurToken.length()){
+                    curToken = trueCaseCurToken;
+                }
+            }
+            int curTokenLength = curToken.length();
+            for (int j = i; j < i + curTokenLength - 1; j++){
+                if (j == resText.length()){
+                    //break;
+                }
+                resTextChar[j] = curToken.charAt(j - i);
+            }
+            consIdx++;
+            i = i + curTokenLength - 1;
+        }
+        resText = new String(resTextChar);
+        TextAnnotation ret_ta =
+                taBuilder.createTextAnnotation(
+                        ta.getCorpusId(),
+                        ta.getId(),
+                        resText);
+        return ret_ta;
+    }
+
     /**
      * @return Boolean representing if the reader is in 2004 mode.
      */

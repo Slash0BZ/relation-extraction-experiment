@@ -35,26 +35,19 @@ discrete% additional_features(Constituent c) <- {
     }
 }
 
+discrete% hym_features(Constituent c) <- {
+    SupportFeatureExtractor sfe = new SupportFeatureExtractor();
+    sfe.getHypernymFeature(c);
+}
+
 discrete entity_type_classifier(Constituent c) <-
 learn entity_type
     using entity_level_features, word_features, offset_features, bow_features
-    from new ACEMentionReader("data/original", "entity")
+    from new ACEMentionReader("data/partition/train/0", "entity")
     10 rounds
     with SupportVectorMachine{
 
     }
-    testFrom new ACEMentionReader("data/original", "entity")
-    progressOutput 20000
-end
-
-discrete entity_subtype_classifier(Constituent c) <-
-learn entity_subtype
-    using entity_level_features, word_features, offset_features, bow_features, additional_features
-    from new ACEMentionReader("data/original", "entity")
-    10 rounds
-    with SupportVectorMachine{
-
-    }
-    testFrom new ACEMentionReader("data/original", "entity")
+    testFrom new ACEMentionReader("data/partition/eval/0", "entity")
     progressOutput 20000
 end
