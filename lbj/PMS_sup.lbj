@@ -1,5 +1,7 @@
 package org.cogcomp.re;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
+import edu.illinois.cs.cogcomp.core.datastructures.Pair;
+import java.util.*;
 
 discrete entity_type(Constituent c) <- {
     return c.getAttribute("EntityType");
@@ -30,24 +32,38 @@ discrete% bow_features(Constituent c) <- {
 }
 
 discrete% additional_features(Constituent c) <- {
-    if (c.getStartSpan() > 0){
-        sense c.getTextAnnotation().getToken(c.getStartSpan() - 1);
-    }
 }
 
-discrete% hym_features(Constituent c) <- {
+real% hym_features(Constituent c) <- {
     SupportFeatureExtractor sfe = new SupportFeatureExtractor();
-    sfe.getHypernymFeature(c);
+    List ret = sfe.getHypernymFeature(c);
+    for (int i = 0; i < ret.size(); i++){
+        Pair p = (Pair)ret.get(i);
+        System.out.println(p.getFirst());
+        sense (String)p.getFirst() : (Double)p.getSecond();
+    }
 }
 
 discrete entity_type_classifier(Constituent c) <-
 learn entity_type
-    using entity_level_features, word_features, offset_features, bow_features
+    using bow_features, hym_features
     from new ACEMentionReader("data/partition/train/0", "entity")
     10 rounds
     with SupportVectorMachine{
 
     }
     testFrom new ACEMentionReader("data/partition/eval/0", "entity")
+    progressOutput 20000
+end
+
+discrete entity_subtype_classifier(Constituent c) <-
+learn entity_subtype
+    using bow_features, hym_features, additional_features
+    from new ACEMentionReader("data/original", "entity")
+    10 rounds
+    with SupportVectorMachine{
+
+    }
+    testFrom new ACEMentionReader("data/original", "entity")
     progressOutput 20000
 end
