@@ -38,7 +38,7 @@ public class RelationAnnotatorStatistics {
 
     public static void main (String[] args){
         try{
-            ACEReader aceReader = new ACEReader("data/partition/eval/4", false);
+            ACEReader aceReader = new ACEReader("data/partition/eval/0", false);
             int total_count = 0;
             int total_match = 0;
             int mention_type_match = 0;
