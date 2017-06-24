@@ -10,6 +10,7 @@ import edu.illinois.cs.cogcomp.finer.config.FinerConfiguration;
 import edu.illinois.cs.cogcomp.finer.datastructure.FineTypeConstituent;
 import edu.illinois.cs.cogcomp.finer.datastructure.types.FinerType;
 import edu.illinois.cs.cogcomp.core.datastructures.Pair;
+import edu.illinois.cs.cogcomp.lbj.coref.ir.Mention;
 
 import java.io.*;
 import java.util.*;
@@ -40,4 +41,5 @@ public class SupportFeatureExtractor {
         }
         return null;
     }
+
 }

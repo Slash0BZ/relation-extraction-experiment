@@ -1,22 +1,22 @@
 // Modifying this comment will cause the next execution of LBJava to overwrite this file.
-// F1B88000000000000000D4A8D4A008020164FA2E2C0A0A61DEBD570113DF60401D076C4CBD7D62079FE7C7067502894129409E64AFD03E2A56E041054BED7E3372EFA5DFE05E6157C6FFB11F02A12859A50CBAA69B8F1033113460175E630DB0043697CDB7000000
+// F1B88000000000000000BCDCCA84D4155584DCB29CC29AC8F29AC284D8F4EC94C2E2ECC4BCC4D22515134D07ECFCB260AC5920558242B6A28D8EA2425E797C7A5A626949615A61BE8246456E221F004C30B1B3F4000000
 
 package org.cogcomp.re;
 
+import edu.illinois.cs.cogcomp.core.datastructures.Pair;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.lbjava.classify.*;
 import edu.illinois.cs.cogcomp.lbjava.infer.*;
 import edu.illinois.cs.cogcomp.lbjava.io.IOUtilities;
 import edu.illinois.cs.cogcomp.lbjava.learn.*;
 import edu.illinois.cs.cogcomp.lbjava.parse.*;
+import java.util.*;
 
 
 public class entity_type_classifier$$1 extends Classifier
 {
-  private static final entity_level_features __entity_level_features = new entity_level_features();
-  private static final word_features __word_features = new word_features();
-  private static final offset_features __offset_features = new offset_features();
   private static final bow_features __bow_features = new bow_features();
+  private static final hym_features __hym_features = new hym_features();
 
   public entity_type_classifier$$1()
   {
@@ -25,24 +25,22 @@ public class entity_type_classifier$$1 extends Classifier
   }
 
   public String getInputType() { return "edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent"; }
-  public String getOutputType() { return "discrete%"; }
+  public String getOutputType() { return "mixed%"; }
 
   public FeatureVector classify(Object __example)
   {
     if (!(__example instanceof Constituent))
     {
       String type = __example == null ? "null" : __example.getClass().getName();
-      System.err.println("Classifier 'entity_type_classifier$$1(Constituent)' defined on line 40 of PMS_sup.lbj received '" + type + "' as input.");
+      System.err.println("Classifier 'entity_type_classifier$$1(Constituent)' defined on line 49 of PMS_sup.lbj received '" + type + "' as input.");
       new Exception().printStackTrace();
       System.exit(1);
     }
 
     FeatureVector __result;
     __result = new FeatureVector();
-    __result.addFeatures(__entity_level_features.classify(__example));
-    __result.addFeatures(__word_features.classify(__example));
-    __result.addFeatures(__offset_features.classify(__example));
     __result.addFeatures(__bow_features.classify(__example));
+    __result.addFeatures(__hym_features.classify(__example));
     return __result;
   }
 
@@ -51,7 +49,7 @@ public class entity_type_classifier$$1 extends Classifier
     if (!(examples instanceof Constituent[]))
     {
       String type = examples == null ? "null" : examples.getClass().getName();
-      System.err.println("Classifier 'entity_type_classifier$$1(Constituent)' defined on line 40 of PMS_sup.lbj received '" + type + "' as input.");
+      System.err.println("Classifier 'entity_type_classifier$$1(Constituent)' defined on line 49 of PMS_sup.lbj received '" + type + "' as input.");
       new Exception().printStackTrace();
       System.exit(1);
     }
@@ -65,10 +63,8 @@ public class entity_type_classifier$$1 extends Classifier
   public java.util.LinkedList getCompositeChildren()
   {
     java.util.LinkedList result = new java.util.LinkedList();
-    result.add(__entity_level_features);
-    result.add(__word_features);
-    result.add(__offset_features);
     result.add(__bow_features);
+    result.add(__hym_features);
     return result;
   }
 }

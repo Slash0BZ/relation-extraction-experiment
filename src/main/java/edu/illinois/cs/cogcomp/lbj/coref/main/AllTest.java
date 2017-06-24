@@ -72,7 +72,7 @@ public class AllTest {
 		catch (Exception e){
 			e.printStackTrace();
 		}
-		String modelPrefix = "0_tc_";
+		String modelPrefix = "all_tc_";
 		MentionDecoder mdDec =
 				new ExtendHeadsDecoder(new MDExtendHeads("models/" + modelPrefix + "md_extent.lc", "models/" + modelPrefix + "md_extent.lex"),
 						new BIODecoder(new MentionDetectorMyBIOHead("models/" + modelPrefix + "md_head.lc", "models/" + modelPrefix + "md_head.lex")));

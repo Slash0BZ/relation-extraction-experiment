@@ -240,8 +240,8 @@ public class ACERelationTester {
                 else {
                     null_total_labeled ++;
                 }
-                if (getCoarseType(predicted_label).equals(getCoarseType(gold_label))){
-                //if (predicted_label.equals(gold_label)){
+                //if (getCoarseType(predicted_label).equals(getCoarseType(gold_label))){
+                if (predicted_label.equals(gold_label)){
                     if (predicted_label.equals("NOT_RELATED") == false){
                         if (cMap.containsKey(gold_label)){
                             cMap.put(gold_label, cMap.get(gold_label) + 1);
@@ -484,7 +484,7 @@ public class ACERelationTester {
             for (Object example = parser_full.next(); example != null; example = parser_full.next()){
                 String predicted_label = constrainedClassifier.discreteValue(example);
                 if (is_null(binary_classifier, example)){
-                    predicted_label = "NOT_RELATED";
+                    //predicted_label = "NOT_RELATED";
                     //continue;
                 }
                 if (predicted_label.equals("NOT_RELATED") == false){
@@ -521,6 +521,6 @@ public class ACERelationTester {
         //delete_files();
     }
     public static void main(String[] args){
-        test_constraint();
+        test_constraint_predicted();
     }
 }

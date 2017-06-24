@@ -3,12 +3,14 @@
 
 package org.cogcomp.re;
 
+import edu.illinois.cs.cogcomp.core.datastructures.Pair;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.lbjava.classify.*;
 import edu.illinois.cs.cogcomp.lbjava.infer.*;
 import edu.illinois.cs.cogcomp.lbjava.io.IOUtilities;
 import edu.illinois.cs.cogcomp.lbjava.learn.*;
 import edu.illinois.cs.cogcomp.lbjava.parse.*;
+import java.util.*;
 
 
 public class entity_subtype extends Classifier
@@ -39,7 +41,7 @@ public class entity_subtype extends Classifier
     if (!(__example instanceof Constituent))
     {
       String type = __example == null ? "null" : __example.getClass().getName();
-      System.err.println("Classifier 'entity_subtype(Constituent)' defined on line 9 of PMS_sup.lbj received '" + type + "' as input.");
+      System.err.println("Classifier 'entity_subtype(Constituent)' defined on line 11 of PMS_sup.lbj received '" + type + "' as input.");
       new Exception().printStackTrace();
       System.exit(1);
     }
@@ -54,7 +56,7 @@ public class entity_subtype extends Classifier
     if (!(examples instanceof Constituent[]))
     {
       String type = examples == null ? "null" : examples.getClass().getName();
-      System.err.println("Classifier 'entity_subtype(Constituent)' defined on line 9 of PMS_sup.lbj received '" + type + "' as input.");
+      System.err.println("Classifier 'entity_subtype(Constituent)' defined on line 11 of PMS_sup.lbj received '" + type + "' as input.");
       new Exception().printStackTrace();
       System.exit(1);
     }

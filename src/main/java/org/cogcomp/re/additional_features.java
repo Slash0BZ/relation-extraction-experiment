@@ -1,14 +1,16 @@
 // Modifying this comment will cause the next execution of LBJava to overwrite this file.
-// F1B8800000000000000056C81BA020130150F75E532425C986BA2288F9076F2B42B72B82B194E50409BF775FA5BD91662B5B4559AB284EC64B2E2F8BE4A2CE55B58371F64367572254C160CB163124A5FD49325A27C7A8788832631FBEA9A735C26F2AF2E9CDB05E73D017165EEAEFF1F08D64CE0CAD57F8913F70FF1DFA5F49000000
+// F1B88000000000000000B49CC2E4E2A4D294555584C4949CC29CCCFCB4CC98F4B4D4C292D2A4D26D07ECFCB2E29CC292D4DCB215846D450B1D558A65058A50006F28A7F543000000
 
 package org.cogcomp.re;
 
+import edu.illinois.cs.cogcomp.core.datastructures.Pair;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.lbjava.classify.*;
 import edu.illinois.cs.cogcomp.lbjava.infer.*;
 import edu.illinois.cs.cogcomp.lbjava.io.IOUtilities;
 import edu.illinois.cs.cogcomp.lbjava.learn.*;
 import edu.illinois.cs.cogcomp.lbjava.parse.*;
+import java.util.*;
 
 
 public class additional_features extends Classifier
@@ -27,7 +29,7 @@ public class additional_features extends Classifier
     if (!(__example instanceof Constituent))
     {
       String type = __example == null ? "null" : __example.getClass().getName();
-      System.err.println("Classifier 'additional_features(Constituent)' defined on line 33 of PMS_sup.lbj received '" + type + "' as input.");
+      System.err.println("Classifier 'additional_features(Constituent)' defined on line 34 of PMS_sup.lbj received '" + type + "' as input.");
       new Exception().printStackTrace();
       System.exit(1);
     }
@@ -39,12 +41,7 @@ public class additional_features extends Classifier
     String __id;
     String __value;
 
-    if (c.getStartSpan() > 0)
-    {
-      __id = "" + (c.getTextAnnotation().getToken(c.getStartSpan() - 1));
-      __value = "true";
-      __result.addFeature(new DiscretePrimitiveStringFeature(this.containingPackage, this.name, __id, __value, valueIndexOf(__value), (short) 0));
-    }
+
     return __result;
   }
 
@@ -53,7 +50,7 @@ public class additional_features extends Classifier
     if (!(examples instanceof Constituent[]))
     {
       String type = examples == null ? "null" : examples.getClass().getName();
-      System.err.println("Classifier 'additional_features(Constituent)' defined on line 33 of PMS_sup.lbj received '" + type + "' as input.");
+      System.err.println("Classifier 'additional_features(Constituent)' defined on line 34 of PMS_sup.lbj received '" + type + "' as input.");
       new Exception().printStackTrace();
       System.exit(1);
     }

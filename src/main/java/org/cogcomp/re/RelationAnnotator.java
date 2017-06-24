@@ -96,8 +96,8 @@ public class RelationAnnotator extends Annotator {
         catch (Exception e){
             e.printStackTrace();
         }
-        entity_type_classifier etc = new entity_type_classifier();
-        entity_subtype_classifier esc = new entity_subtype_classifier();
+        entity_type_classifier etc = new entity_type_classifier("models/entity_type_classifier_fold_0.lc", "models/entity_type_classifier_fold_0.lex");
+        entity_subtype_classifier esc = new entity_subtype_classifier("models/entity_subtype_classifier_fold_0.lc", "models/entity_subtype_classifier_fold_0.lex");
         for (Constituent c : predictedCons){
             String entity_type = etc.discreteValue(c);
             String entity_subtype = esc.discreteValue(c);

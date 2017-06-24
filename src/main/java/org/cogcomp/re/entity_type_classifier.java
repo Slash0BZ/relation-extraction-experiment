@@ -1,54 +1,28 @@
 // Modifying this comment will cause the next execution of LBJava to overwrite this file.
-// F1B88000000000000000D9F81BA628140148F55683C222821D4D63144B390420922D8C177BEFE2EF9DB3677F03212FEE9B06363639927668F689CC6949C9042ECE79DBF5A2DE3D81DC8F0C4AF0BE226D386D364A926537C84155E6BE866C23CD10C462B4C14BC7248EC87E5F667F75B22FA41377A78C1D3E3615E1852E81668075A489269B0869629D0766F32EDA5DA54DFD92971DD5C47461AF60E70E46EBDFFC0455ADC79B6C4E8099DE4F1C53473BC0A466F2DCB637C3D2ABAF3BCFB0481FE25E72100000
+// 
 
 package org.cogcomp.re;
 
+import edu.illinois.cs.cogcomp.core.datastructures.Pair;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.lbjava.classify.*;
 import edu.illinois.cs.cogcomp.lbjava.infer.*;
 import edu.illinois.cs.cogcomp.lbjava.io.IOUtilities;
 import edu.illinois.cs.cogcomp.lbjava.learn.*;
 import edu.illinois.cs.cogcomp.lbjava.parse.*;
-
-import java.io.File;
-import java.net.URL;
+import java.util.*;
 
 
 public class entity_type_classifier extends SupportVectorMachine
 {
-  private static java.net.URL _lcFilePath;
-  private static java.net.URL _lexFilePath;
-
-  static
-  {
-    try {
-      _lcFilePath = new URL("file:models/entity_type_classifier.lc");
-      _lexFilePath = new URL("file:models/entity_type_classifier.lex");
-    }
-    catch (Exception e){
-
-    }
-  }
-
   private static void loadInstance()
   {
-    if (instance == null)
-    {
-      if (_lcFilePath == null)
-      {
-        throw new RuntimeException("Can't locate entity_type_classifier.lc in the class path.");
-      }
-      if (_lexFilePath == null)
-      {
-        throw new RuntimeException("Can't locate entity_type_classifier.lc in the class path.");
-      }
-      instance = (entity_type_classifier) Learner.readLearner(_lcFilePath);
-      instance.readLexiconOnDemand(_lexFilePath);
-    }
+    if (instance == null) instance = new entity_type_classifier(true);
   }
 
-  public static Parser getParser() { return new edu.illinois.cs.cogcomp.lbjava.parse.ArrayFileParser("C:\\Users\\xuany\\Dropbox\\research\\relation-extraction\\src\\main\\java\\org\\cogcomp\\re\\entity_type_classifier.ex"); }
-  public static Parser getTestParser() { return new edu.illinois.cs.cogcomp.lbjava.parse.ArrayFileParser("C:\\Users\\xuany\\Dropbox\\research\\relation-extraction\\src\\main\\java\\org\\cogcomp\\re\\entity_type_classifier.test.ex"); }
+  public static Parser getParser() { return new ACEMentionReader("data/partition/train/0", "entity"); }
+  public static Parser getTestParser() { return new ACEMentionReader("data/partition/eval/0", "entity"); }
+
   public static boolean isTraining;
   public static entity_type_classifier instance;
 
@@ -128,7 +102,7 @@ public class entity_type_classifier extends SupportVectorMachine
       if (!(example instanceof Constituent || example instanceof Object[]))
       {
         String type = example == null ? "null" : example.getClass().getName();
-        System.err.println("Classifier 'entity_type_classifier(Constituent)' defined on line 39 of PMS_sup.lbj received '" + type + "' as input.");
+        System.err.println("Classifier 'entity_type_classifier(Constituent)' defined on line 48 of PMS_sup.lbj received '" + type + "' as input.");
         new Exception().printStackTrace();
         System.exit(1);
       }
@@ -158,7 +132,7 @@ public class entity_type_classifier extends SupportVectorMachine
       if (!(examples instanceof Constituent[] || examples instanceof Object[][]))
       {
         String type = examples == null ? "null" : examples.getClass().getName();
-        System.err.println("Classifier 'entity_type_classifier(Constituent)' defined on line 39 of PMS_sup.lbj received '" + type + "' as input.");
+        System.err.println("Classifier 'entity_type_classifier(Constituent)' defined on line 48 of PMS_sup.lbj received '" + type + "' as input.");
         new Exception().printStackTrace();
         System.exit(1);
       }
@@ -178,7 +152,7 @@ public class entity_type_classifier extends SupportVectorMachine
       if (!(__example instanceof Constituent || __example instanceof Object[]))
       {
         String type = __example == null ? "null" : __example.getClass().getName();
-        System.err.println("Classifier 'entity_type_classifier(Constituent)' defined on line 39 of PMS_sup.lbj received '" + type + "' as input.");
+        System.err.println("Classifier 'entity_type_classifier(Constituent)' defined on line 48 of PMS_sup.lbj received '" + type + "' as input.");
         new Exception().printStackTrace();
         System.exit(1);
       }
@@ -216,7 +190,7 @@ public class entity_type_classifier extends SupportVectorMachine
       if (!(examples instanceof Constituent[] || examples instanceof Object[][]))
       {
         String type = examples == null ? "null" : examples.getClass().getName();
-        System.err.println("Classifier 'entity_type_classifier(Constituent)' defined on line 39 of PMS_sup.lbj received '" + type + "' as input.");
+        System.err.println("Classifier 'entity_type_classifier(Constituent)' defined on line 48 of PMS_sup.lbj received '" + type + "' as input.");
         new Exception().printStackTrace();
         System.exit(1);
       }
@@ -371,15 +345,15 @@ public class entity_type_classifier extends SupportVectorMachine
     super.learn(a0, a1, a2, a3);
   }
 
-  public edu.illinois.cs.cogcomp.lbjava.classify.Feature featureValue(int[] a0, double[] a1)
+  public edu.illinois.cs.cogcomp.lbjava.classify.FeatureVector classify(int[] a0, double[] a1)
   {
     if (isClone)
     {
       loadInstance();
-      return instance.featureValue(a0, a1);
+      return instance.classify(a0, a1);
     }
 
-    return super.featureValue(a0, a1);
+    return super.classify(a0, a1);
   }
 
   public java.lang.String discreteValue(int[] a0, double[] a1)
@@ -393,15 +367,15 @@ public class entity_type_classifier extends SupportVectorMachine
     return super.discreteValue(a0, a1);
   }
 
-  public edu.illinois.cs.cogcomp.lbjava.classify.FeatureVector classify(int[] a0, double[] a1)
+  public edu.illinois.cs.cogcomp.lbjava.classify.Feature featureValue(int[] a0, double[] a1)
   {
     if (isClone)
     {
       loadInstance();
-      return instance.classify(a0, a1);
+      return instance.featureValue(a0, a1);
     }
 
-    return super.classify(a0, a1);
+    return super.featureValue(a0, a1);
   }
 
   public double score(java.lang.Object a0)
@@ -437,15 +411,16 @@ public class entity_type_classifier extends SupportVectorMachine
     return super.score(a0, a1, a2);
   }
 
-  public double[] getWeights()
+  public void setLabeler(edu.illinois.cs.cogcomp.lbjava.classify.Classifier a0)
   {
     if (isClone)
     {
       loadInstance();
-      return instance.getWeights();
+      instance.setLabeler(a0);
+      return;
     }
 
-    return super.getWeights();
+    super.setLabeler(a0);
   }
 
   public int getNumClasses()
@@ -471,18 +446,6 @@ public class entity_type_classifier extends SupportVectorMachine
     super.setParameters(a0);
   }
 
-  public void forget()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.forget();
-      return;
-    }
-
-    super.forget();
-  }
-
   public void doneLearning()
   {
     if (isClone)
@@ -495,16 +458,27 @@ public class entity_type_classifier extends SupportVectorMachine
     super.doneLearning();
   }
 
-  public void setLabeler(edu.illinois.cs.cogcomp.lbjava.classify.Classifier a0)
+  public double[] getWeights()
   {
     if (isClone)
     {
       loadInstance();
-      instance.setLabeler(a0);
+      return instance.getWeights();
+    }
+
+    return super.getWeights();
+  }
+
+  public void forget()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.forget();
       return;
     }
 
-    super.setLabeler(a0);
+    super.forget();
   }
 
   public edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet scores(int[] a0, double[] a1)
@@ -578,28 +552,6 @@ public class entity_type_classifier extends SupportVectorMachine
     super.learn(a0);
   }
 
-  public edu.illinois.cs.cogcomp.lbjava.classify.Feature featureValue(edu.illinois.cs.cogcomp.lbjava.classify.FeatureVector a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.featureValue(a0);
-    }
-
-    return super.featureValue(a0);
-  }
-
-  public java.lang.String discreteValue(edu.illinois.cs.cogcomp.lbjava.classify.FeatureVector a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.discreteValue(a0);
-    }
-
-    return super.discreteValue(a0);
-  }
-
   public double realValue(int[] a0, double[] a1)
   {
     if (isClone)
@@ -655,6 +607,205 @@ public class entity_type_classifier extends SupportVectorMachine
     return super.classify(a0);
   }
 
+  public java.lang.String discreteValue(edu.illinois.cs.cogcomp.lbjava.classify.FeatureVector a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.discreteValue(a0);
+    }
+
+    return super.discreteValue(a0);
+  }
+
+  public edu.illinois.cs.cogcomp.lbjava.classify.Feature featureValue(edu.illinois.cs.cogcomp.lbjava.classify.FeatureVector a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.featureValue(a0);
+    }
+
+    return super.featureValue(a0);
+  }
+
+  public java.net.URL getModelLocation()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.getModelLocation();
+    }
+
+    return super.getModelLocation();
+  }
+
+  public void setModelLocation(java.net.URL a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.setModelLocation(a0);
+      return;
+    }
+
+    super.setModelLocation(a0);
+  }
+
+  public void setModelLocation(java.lang.String a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.setModelLocation(a0);
+      return;
+    }
+
+    super.setModelLocation(a0);
+  }
+
+  public void doneWithRound()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.doneWithRound();
+      return;
+    }
+
+    super.doneWithRound();
+  }
+
+  public void setEncoding(java.lang.String a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.setEncoding(a0);
+      return;
+    }
+
+    super.setEncoding(a0);
+  }
+
+  public void countFeatures(edu.illinois.cs.cogcomp.lbjava.learn.Lexicon.CountPolicy a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.countFeatures(a0);
+      return;
+    }
+
+    super.countFeatures(a0);
+  }
+
+  public edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet scoresAugmented(java.lang.Object a0, edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet a1)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.scoresAugmented(a0, a1);
+    }
+
+    return super.scoresAugmented(a0, a1);
+  }
+
+  public edu.illinois.cs.cogcomp.lbjava.learn.Learner emptyClone()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.emptyClone();
+    }
+
+    return super.emptyClone();
+  }
+
+  public void readModel(java.net.URL a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.readModel(a0);
+      return;
+    }
+
+    super.readModel(a0);
+  }
+
+  public void readModel(java.lang.String a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.readModel(a0);
+      return;
+    }
+
+    super.readModel(a0);
+  }
+
+  public void saveModel()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.saveModel();
+      return;
+    }
+
+    super.saveModel();
+  }
+
+  public void saveLexicon()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.saveLexicon();
+      return;
+    }
+
+    super.saveLexicon();
+  }
+
+  public void writeLexicon(java.lang.String a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.writeLexicon(a0);
+      return;
+    }
+
+    super.writeLexicon(a0);
+  }
+
+  public void writeModel(java.lang.String a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.writeModel(a0);
+      return;
+    }
+
+    super.writeModel(a0);
+  }
+
+  public void readLabelLexicon(edu.illinois.cs.cogcomp.core.datastructures.vectors.ExceptionlessInputStream a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.readLabelLexicon(a0);
+      return;
+    }
+
+    super.readLabelLexicon(a0);
+  }
+
   public void setParameters(edu.illinois.cs.cogcomp.lbjava.learn.Learner.Parameters a0)
   {
     if (isClone)
@@ -665,6 +816,121 @@ public class entity_type_classifier extends SupportVectorMachine
     }
 
     super.setParameters(a0);
+  }
+
+  public java.net.URL getLexiconLocation()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.getLexiconLocation();
+    }
+
+    return super.getLexiconLocation();
+  }
+
+  public void setLexiconLocation(java.net.URL a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.setLexiconLocation(a0);
+      return;
+    }
+
+    super.setLexiconLocation(a0);
+  }
+
+  public void setLexiconLocation(java.lang.String a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.setLexiconLocation(a0);
+      return;
+    }
+
+    super.setLexiconLocation(a0);
+  }
+
+  public void readLexiconOnDemand(java.net.URL a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.readLexiconOnDemand(a0);
+      return;
+    }
+
+    super.readLexiconOnDemand(a0);
+  }
+
+  public void readLexiconOnDemand(java.lang.String a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.readLexiconOnDemand(a0);
+      return;
+    }
+
+    super.readLexiconOnDemand(a0);
+  }
+
+  public int getPrunedLexiconSize()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.getPrunedLexiconSize();
+    }
+
+    return super.getPrunedLexiconSize();
+  }
+
+  public edu.illinois.cs.cogcomp.lbjava.learn.Lexicon getLexiconDiscardCounts()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.getLexiconDiscardCounts();
+    }
+
+    return super.getLexiconDiscardCounts();
+  }
+
+  public void setReadLexiconOnDemand()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.setReadLexiconOnDemand();
+      return;
+    }
+
+    super.setReadLexiconOnDemand();
+  }
+
+  public edu.illinois.cs.cogcomp.lbjava.learn.Lexicon getCurrentLexicon()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.getCurrentLexicon();
+    }
+
+    return super.getCurrentLexicon();
+  }
+
+  public edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet scores(edu.illinois.cs.cogcomp.lbjava.classify.FeatureVector a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.scores(a0);
+    }
+
+    return super.scores(a0);
   }
 
   public edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet scores(java.lang.Object a0)
@@ -678,15 +944,95 @@ public class entity_type_classifier extends SupportVectorMachine
     return super.scores(a0);
   }
 
-  public edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet scores(edu.illinois.cs.cogcomp.lbjava.classify.FeatureVector a0)
+  public void unsetLossFlag()
   {
     if (isClone)
     {
       loadInstance();
-      return instance.scores(a0);
+      instance.unsetLossFlag();
+      return;
     }
 
-    return super.scores(a0);
+    super.unsetLossFlag();
+  }
+
+  public edu.illinois.cs.cogcomp.lbjava.classify.Classifier getExtractor()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.getExtractor();
+    }
+
+    return super.getExtractor();
+  }
+
+  public void setLexicon(edu.illinois.cs.cogcomp.lbjava.learn.Lexicon a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.setLexicon(a0);
+      return;
+    }
+
+    super.setLexicon(a0);
+  }
+
+  public void setLabelLexicon(edu.illinois.cs.cogcomp.lbjava.learn.Lexicon a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      instance.setLabelLexicon(a0);
+      return;
+    }
+
+    super.setLabelLexicon(a0);
+  }
+
+  public edu.illinois.cs.cogcomp.lbjava.learn.Lexicon getLabelLexicon()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.getLabelLexicon();
+    }
+
+    return super.getLabelLexicon();
+  }
+
+  public java.lang.Object[] getExampleArray(java.lang.Object a0)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.getExampleArray(a0);
+    }
+
+    return super.getExampleArray(a0);
+  }
+
+  public java.lang.Object[] getExampleArray(java.lang.Object a0, boolean a1)
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.getExampleArray(a0, a1);
+    }
+
+    return super.getExampleArray(a0, a1);
+  }
+
+  public edu.illinois.cs.cogcomp.lbjava.learn.Lexicon getLexicon()
+  {
+    if (isClone)
+    {
+      loadInstance();
+      return instance.getLexicon();
+    }
+
+    return super.getLexicon();
   }
 
   public edu.illinois.cs.cogcomp.lbjava.learn.Lexicon demandLexicon()
@@ -724,250 +1070,6 @@ public class entity_type_classifier extends SupportVectorMachine
     super.readLexicon(a0);
   }
 
-  public java.lang.Object[] getExampleArray(java.lang.Object a0, boolean a1)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.getExampleArray(a0, a1);
-    }
-
-    return super.getExampleArray(a0, a1);
-  }
-
-  public java.lang.Object[] getExampleArray(java.lang.Object a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.getExampleArray(a0);
-    }
-
-    return super.getExampleArray(a0);
-  }
-
-  public java.net.URL getModelLocation()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.getModelLocation();
-    }
-
-    return super.getModelLocation();
-  }
-
-  public void saveLexicon()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.saveLexicon();
-      return;
-    }
-
-    super.saveLexicon();
-  }
-
-  public void setEncoding(java.lang.String a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.setEncoding(a0);
-      return;
-    }
-
-    super.setEncoding(a0);
-  }
-
-  public edu.illinois.cs.cogcomp.lbjava.classify.Classifier getLabeler()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.getLabeler();
-    }
-
-    return super.getLabeler();
-  }
-
-  public edu.illinois.cs.cogcomp.lbjava.learn.Lexicon getLexicon()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.getLexicon();
-    }
-
-    return super.getLexicon();
-  }
-
-  public void setModelLocation(java.net.URL a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.setModelLocation(a0);
-      return;
-    }
-
-    super.setModelLocation(a0);
-  }
-
-  public void setModelLocation(java.lang.String a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.setModelLocation(a0);
-      return;
-    }
-
-    super.setModelLocation(a0);
-  }
-
-  public void readLabelLexicon(edu.illinois.cs.cogcomp.core.datastructures.vectors.ExceptionlessInputStream a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.readLabelLexicon(a0);
-      return;
-    }
-
-    super.readLabelLexicon(a0);
-  }
-
-  public void countFeatures(edu.illinois.cs.cogcomp.lbjava.learn.Lexicon.CountPolicy a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.countFeatures(a0);
-      return;
-    }
-
-    super.countFeatures(a0);
-  }
-
-  public void doneWithRound()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.doneWithRound();
-      return;
-    }
-
-    super.doneWithRound();
-  }
-
-  public edu.illinois.cs.cogcomp.lbjava.learn.Learner emptyClone()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.emptyClone();
-    }
-
-    return super.emptyClone();
-  }
-
-  public void writeModel(java.lang.String a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.writeModel(a0);
-      return;
-    }
-
-    super.writeModel(a0);
-  }
-
-  public void unsetLossFlag()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.unsetLossFlag();
-      return;
-    }
-
-    super.unsetLossFlag();
-  }
-
-  public void saveModel()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.saveModel();
-      return;
-    }
-
-    super.saveModel();
-  }
-
-  public void readModel(java.lang.String a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.readModel(a0);
-      return;
-    }
-
-    super.readModel(a0);
-  }
-
-  public void readModel(java.net.URL a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.readModel(a0);
-      return;
-    }
-
-    super.readModel(a0);
-  }
-
-  public edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet scoresAugmented(java.lang.Object a0, edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet a1)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.scoresAugmented(a0, a1);
-    }
-
-    return super.scoresAugmented(a0, a1);
-  }
-
-  public edu.illinois.cs.cogcomp.lbjava.learn.Lexicon getLabelLexicon()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.getLabelLexicon();
-    }
-
-    return super.getLabelLexicon();
-  }
-
-  public void setLabelLexicon(edu.illinois.cs.cogcomp.lbjava.learn.Lexicon a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.setLabelLexicon(a0);
-      return;
-    }
-
-    super.setLabelLexicon(a0);
-  }
-
   public void setLossFlag()
   {
     if (isClone)
@@ -978,53 +1080,6 @@ public class entity_type_classifier extends SupportVectorMachine
     }
 
     super.setLossFlag();
-  }
-
-  public void setLexicon(edu.illinois.cs.cogcomp.lbjava.learn.Lexicon a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.setLexicon(a0);
-      return;
-    }
-
-    super.setLexicon(a0);
-  }
-
-  public edu.illinois.cs.cogcomp.lbjava.classify.Classifier getExtractor()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.getExtractor();
-    }
-
-    return super.getExtractor();
-  }
-
-  public void setExtractor(edu.illinois.cs.cogcomp.lbjava.classify.Classifier a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.setExtractor(a0);
-      return;
-    }
-
-    super.setExtractor(a0);
-  }
-
-  public void writeLexicon(java.lang.String a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.writeLexicon(a0);
-      return;
-    }
-
-    super.writeLexicon(a0);
   }
 
   public void setCandidates(int a0)
@@ -1039,108 +1094,27 @@ public class entity_type_classifier extends SupportVectorMachine
     super.setCandidates(a0);
   }
 
-  public void setReadLexiconOnDemand()
+  public void setExtractor(edu.illinois.cs.cogcomp.lbjava.classify.Classifier a0)
   {
     if (isClone)
     {
       loadInstance();
-      instance.setReadLexiconOnDemand();
+      instance.setExtractor(a0);
       return;
     }
 
-    super.setReadLexiconOnDemand();
+    super.setExtractor(a0);
   }
 
-  public edu.illinois.cs.cogcomp.lbjava.learn.Lexicon getCurrentLexicon()
+  public edu.illinois.cs.cogcomp.lbjava.classify.Classifier getLabeler()
   {
     if (isClone)
     {
       loadInstance();
-      return instance.getCurrentLexicon();
+      return instance.getLabeler();
     }
 
-    return super.getCurrentLexicon();
-  }
-
-  public void setLexiconLocation(java.net.URL a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.setLexiconLocation(a0);
-      return;
-    }
-
-    super.setLexiconLocation(a0);
-  }
-
-  public void setLexiconLocation(java.lang.String a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.setLexiconLocation(a0);
-      return;
-    }
-
-    super.setLexiconLocation(a0);
-  }
-
-  public edu.illinois.cs.cogcomp.lbjava.learn.Lexicon getLexiconDiscardCounts()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.getLexiconDiscardCounts();
-    }
-
-    return super.getLexiconDiscardCounts();
-  }
-
-  public java.net.URL getLexiconLocation()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.getLexiconLocation();
-    }
-
-    return super.getLexiconLocation();
-  }
-
-  public void readLexiconOnDemand(java.net.URL a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.readLexiconOnDemand(a0);
-      return;
-    }
-
-    super.readLexiconOnDemand(a0);
-  }
-
-  public void readLexiconOnDemand(java.lang.String a0)
-  {
-    if (isClone)
-    {
-      loadInstance();
-      instance.readLexiconOnDemand(a0);
-      return;
-    }
-
-    super.readLexiconOnDemand(a0);
-  }
-
-  public int getPrunedLexiconSize()
-  {
-    if (isClone)
-    {
-      loadInstance();
-      return instance.getPrunedLexiconSize();
-    }
-
-    return super.getPrunedLexiconSize();
+    return super.getLabeler();
   }
 
   public static class Parameters extends SupportVectorMachine.Parameters
