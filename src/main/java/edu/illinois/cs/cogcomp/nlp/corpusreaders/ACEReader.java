@@ -278,11 +278,13 @@ public class ACEReader extends AnnotationReader<TextAnnotation> {
             i = i + curTokenLength - 1;
         }
         resText = new String(resTextChar);
+
         ta =
                 taBuilder.createTextAnnotation(
                         this.corpusId,
                         textId,
                         resText);
+
         // Add metadata attributes to the generated Text Annotation.
         if (doc.metadata != null) {
             for (String metadataKey : doc.metadata.keySet()) {

@@ -15,11 +15,10 @@ public class EntityTyperTester {
         int total_correct_subtype = 0;
         int total_correct_both = 0;
         int total_count = 0;
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 5; i++) {
             entity_type type_output = new entity_type();
             entity_subtype subtype_output = new entity_subtype();
-            //Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "entity");
-            Parser train_parser = new ACEMentionReader("data/original", "entity");
+            Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "entity");
             entity_type_classifier etc = new entity_type_classifier();
             entity_subtype_classifier esc = new entity_subtype_classifier();
             etc.setLexiconLocation("tmp/entity_type_classifier_fold_" + i + ".lex");
@@ -40,7 +39,7 @@ public class EntityTyperTester {
             etc.save();
             esc.save();
 
-            Parser test_parser = new ACEMentionReader("data/original", "entity");
+            Parser test_parser = new ACEMentionReader("data/partition/eval/" + i, "entity");
             for (Object example = test_parser.next(); example != null; example = test_parser.next()){
                 total_count ++;
                 String predicted_type = etc.discreteValue(example);
@@ -68,10 +67,10 @@ public class EntityTyperTester {
     }
 
     public static void arbiTests(){
-        String modelFileLc = "tmp/entity_type_classifier_fold_0.lc";
-        String modelFileLex = "tmp/entity_type_classifier_fold_0.lex";
+        String modelFileLc = "models/entity_type_classifier.lc";
+        String modelFileLex = "models/entity_type_classifier.lex";
         entity_type_classifier classifier = new entity_type_classifier(modelFileLc, modelFileLex);
-        Parser test_parser = new ACEMentionReader("data/original", "entity");
+        Parser test_parser = new ACEMentionReader("data/dev", "entity");
         int total_count = 0;
         int total_correct_type = 0;
         entity_type type_output = new entity_type();
@@ -96,12 +95,12 @@ public class EntityTyperTester {
             BatchTrainer trainer_etc = new BatchTrainer(etc, train_parser);
             Lexicon etcLexicon = trainer_etc.preExtract("models/entity_type_classifier_fold_" + i + ".ex");
             etc.setLexicon(etcLexicon);
-            trainer_etc.train(1);
+            trainer_etc.train(10);
             train_parser.reset();
             BatchTrainer trainer_esc = new BatchTrainer(esc, train_parser);
             Lexicon escLexicon = trainer_esc.preExtract("models/entity_subtype_classifier_fold_" + i + ".ex");
             esc.setLexicon(escLexicon);
-            trainer_esc.train(1);
+            trainer_esc.train(10);
             train_parser.reset();
             etc.setModelLocation("models/entity_type_classifier_fold_" + i + ".lc");
             esc.setModelLocation("models/entity_subtype_classifier_fold_" + i + ".lc");
@@ -118,12 +117,12 @@ public class EntityTyperTester {
         BatchTrainer trainer_etc = new BatchTrainer(etc, train_parser);
         Lexicon etcLexicon = trainer_etc.preExtract("models/entity_type_classifier.ex");
         etc.setLexicon(etcLexicon);
-        trainer_etc.train(1);
+        trainer_etc.train(10);
         train_parser.reset();
         BatchTrainer trainer_esc = new BatchTrainer(esc, train_parser);
         Lexicon escLexicon = trainer_esc.preExtract("models/entity_subtype_classifier.ex");
         esc.setLexicon(escLexicon);
-        trainer_esc.train(1);
+        trainer_esc.train(10);
         train_parser.reset();
         etc.setModelLocation("models/entity_type_classifier.lc");
         esc.setModelLocation("models/entity_subtype_classifier.lc");

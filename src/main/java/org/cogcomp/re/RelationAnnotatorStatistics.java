@@ -38,7 +38,7 @@ public class RelationAnnotatorStatistics {
 
     public static void main (String[] args){
         try{
-            ACEReader aceReader = new ACEReader("data/partition/eval/0", false);
+            ACEReader aceReader = new ACEReader("data/dev", false);
             int total_count = 0;
             int total_match = 0;
             int mention_type_match = 0;
@@ -46,8 +46,8 @@ public class RelationAnnotatorStatistics {
             int total_labeled_mention = 0;
             int total_predicted_mention = 0;
             int total_correct_mention = 0;
-            entity_type_classifier etc = new entity_type_classifier();
-            entity_subtype_classifier esc = new entity_subtype_classifier();
+            entity_type_classifier etc = new entity_type_classifier("models/entity_type_classifier.lc", "models/entity_type_classifier.lex");
+            entity_subtype_classifier esc = new entity_subtype_classifier("models/entity_subtype_classifier.lc", "models/entity_subtype_classifier.lex");
             for (TextAnnotation ta : aceReader){
                 Map<Constituent, Constituent> consMap = new HashMap<Constituent, Constituent>();
                 List<Constituent> predictedMentions = AllTest.MentionTest(ta);

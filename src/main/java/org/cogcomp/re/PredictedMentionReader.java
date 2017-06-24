@@ -83,7 +83,7 @@ public class PredictedMentionReader implements Parser{
                     c.addAttribute("EntityType", entity_type);
                     c.addAttribute("EntitySubtype", entity_subtype);
                     predictedView.addConstituent(c);
-                    System.out.println(c.getAttribute("EntityType") + " " + c.getAttribute("EntitySubtype") + " " + c.getAttribute("EntityMentionType"));
+                    //System.out.println(c.getAttribute("EntityType") + " " + c.getAttribute("EntitySubtype") + " " + c.getAttribute("EntityMentionType"));
                 }
                 Map<Constituent, Constituent> consMap = new HashMap<Constituent, Constituent>();
                 List<Relation> gold_relations = entityView.getRelations();
