@@ -25,20 +25,24 @@ eval_path: path to store future test sets
 			The program generates five path under this path
 anchor_file: the name of the anchor file for the ACE set
 '''
-original_path = "./data/original"
-train_path = "./data/partition/train"
-eval_path = "./data/partition/eval"
+original_path = "./data/bnnw"
+train_path = "./data/partition_with_dev/train"
+eval_path = "./data/partition_with_dev/eval"
+dev_path = "./data/partition_with_dev/dev"
 anchor_file = "apf.v5.1.1.dtd"
+dev_size = 0
 eval_size = 0
 extensions = [".ag.xml", ".apf.xml", ".apf.xml.score", ".sgm", ".tab"]
 
 
 def main():
-	if (len(sys.argv) < 2):
-		print "Usage: python partitioner.py [eval_portion]"
+	if (len(sys.argv) < 3):
+		print "Usage: python partitioner.py [eval_portion] [dev_portion]"
 		return
 	global eval_size
+	global dev_size
 	eval_size = (float)(sys.argv[1])
+	dev_size = (float)(sys.argv[2])
 	if (eval_size <= 0.0 or eval_size >= 1.0):
 		print "[ERROR]: eval_portion should be within 0 to 1"
 		return
@@ -47,6 +51,7 @@ def main():
 		return
 	clear_path(train_path)
 	clear_path(eval_path)
+	clear_path(dev_path)
 	init_partition()
 
 '''
@@ -63,6 +68,7 @@ Actual parition handler
 All splits are random
 '''
 def init_partition():
+	global dev_path
 	targets = list()
 	for root, dirs, files in os.walk(original_path):
 		if (root == original_path):
@@ -81,10 +87,24 @@ def init_partition():
 			file_info = tf.split(".")
 			file_name = file_info[0] + "." + file_info[1]
 			file_groups.add(file_name)
+		file_groups = list(file_groups)
+		anchor_path = original_path + "/" + target + "/" + anchor_file
+
+		random.shuffle(file_groups)
+		dev_file_num = (int)(math.ceil((float)(len(file_groups)) * dev_size))
+		dev_files = file_groups[0:dev_file_num]
+		file_groups = file_groups[dev_file_num:]
+		if not os.path.exists(dev_path + "/" + target):
+			os.makedirs(dev_path + "/" + target)
+		for df in dev_files:
+			for e in extensions:
+				from_path = original_path + "/" + target + "/" + df + e
+				to_path = dev_path + "/" + target + "/" + df + e
+				shutil.copy(from_path, to_path)
+		shutil.copy(anchor_path, dev_path + "/" + target + "/" + anchor_file)
 				
 		eval_file_num = (int)(math.ceil((float)(len(file_groups)) * eval_size)) 
 		file_groups = list(file_groups)
-		random.shuffle(file_groups)
 		for fold in range (0, 5): 
 			eval_start = fold * eval_file_num
 			eval_end = (fold + 1) * eval_file_num
@@ -112,7 +132,6 @@ def init_partition():
 					from_path = original_path + "/" + target + "/" + tf + e
 					to_path = train_path + "/" + str(fold) + "/" + target + "/" + tf + e
 					shutil.copy(from_path, to_path)
-			anchor_path = original_path + "/" + target + "/" + anchor_file
 			shutil.copy(anchor_path, eval_path + "/" + str(fold) + "/" + target + "/" + anchor_file)
 			shutil.copy(anchor_path, train_path + "/" + str(fold) + "/" + target + "/" + anchor_file)
 
