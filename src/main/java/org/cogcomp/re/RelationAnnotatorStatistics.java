@@ -6,11 +6,27 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Relation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.lbj.coref.main.AllTest;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
+import sun.reflect.generics.tree.Tree;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+class ValueComparator implements Comparator<String> {
+    Map<String, Integer> base;
+
+    public ValueComparator(Map<String, Integer> base) {
+        this.base = base;
+    }
+
+    // Note: this comparator imposes orderings that are inconsistent with
+    // equals.
+    public int compare(String a, String b) {
+        if (base.get(a) >= base.get(b)) {
+            return -1;
+        } else {
+            return 1;
+        } // returning 0 would merge keys
+    }
+}
 
 public class RelationAnnotatorStatistics {
 
@@ -37,6 +53,10 @@ public class RelationAnnotatorStatistics {
     }
 
     public static void main (String[] args){
+        List<String> output = new ArrayList<String>();
+        Map<String, Integer> missed_gold = new HashMap<>();
+        Map<String, Integer> missed_gold_hit = new HashMap<>();
+        Map<String, Integer> missed_predicted = new HashMap<>();
         try{
             ACEReader aceReader = new ACEReader("data/partition_with_dev/eval/4", false);
             int total_count = 0;
@@ -46,9 +66,12 @@ public class RelationAnnotatorStatistics {
             int total_labeled_mention = 0;
             int total_predicted_mention = 0;
             int total_correct_mention = 0;
+            int docCount = 0;
             entity_type_classifier etc = new entity_type_classifier("models/entity_type_classifier.lc", "models/entity_type_classifier.lex");
             entity_subtype_classifier esc = new entity_subtype_classifier("models/entity_subtype_classifier.lc", "models/entity_subtype_classifier.lex");
             for (TextAnnotation ta : aceReader){
+                docCount++;
+                //System.out.println("[DOC]: " + ta.getText());
                 Map<Constituent, Constituent> consMap = new HashMap<Constituent, Constituent>();
                 List<Constituent> predictedMentions = AllTest.MentionTest(ta);
                 List<Constituent> predictedMentionWithTypes = new ArrayList<Constituent>();
@@ -58,8 +81,10 @@ public class RelationAnnotatorStatistics {
                     c.addAttribute("EntityType", entity_type);
                     c.addAttribute("EntitySubtype", entity_subtype);
                     predictedMentionWithTypes.add(c);
+                    //System.out.println("[PREDICTED]: " + c.toString() + " | [HEAD]: " + getEntityHeadForConstituent(c, ta, "A").toString());
                 }
                 for (Constituent c : ta.getView(ViewNames.MENTION_ACE).getConstituents()){
+                    //System.out.print("[GOLD]: " + c.toString()+ " | [HEAD]: " + getEntityHeadForConstituent(c, ta, "A").toString());
                     consMap.put(c,null);
                     for (Constituent pc : predictedMentionWithTypes){
                         Constituent ch = getEntityHeadForConstituent(c, ta, "TESTG");
@@ -67,13 +92,11 @@ public class RelationAnnotatorStatistics {
                         //if (ch.getStartSpan() == pch.getStartSpan() && ch.getEndSpan() == pch.getEndSpan()){
                         if ((ch.getStartSpan() >= pch.getEndSpan() || pch.getStartSpan() >= ch.getEndSpan()) == false){
                             consMap.put(c, pc);
-                            if (!(ch.getStartSpan() == pch.getStartSpan()) || !(ch.getEndSpan() == pch.getEndSpan())){
-                                System.out.println("gold: " + ch.toString());
-                                System.out.println("predicted: " + pch.toString());
-                            }
+                            //System.out.print(" [C] ");
                             break;
                         }
                     }
+                    //System.out.println();
                 }
                 List<Constituent> goldMentions = ta.getView(ViewNames.MENTION_ACE).getConstituents();
                 total_labeled_mention += goldMentions.size();
@@ -81,6 +104,45 @@ public class RelationAnnotatorStatistics {
                 for (Constituent c : goldMentions){
                     if (consMap.get(c) != null){
                         total_correct_mention ++;
+                    }
+                    else{
+                        String mistake = c.toString();
+                        if (missed_gold.containsKey(mistake)){
+                            missed_gold.put(mistake, missed_gold.get(mistake) + 1);
+                        }
+                        else{
+                            missed_gold.put(mistake, 1);
+                        }
+                    }
+                }
+                for (Constituent c : predictedMentions){
+                    if (!consMap.containsValue(c)){
+                        String mistake = c.toString();
+                        if (missed_predicted.containsKey(mistake)){
+                            missed_predicted.put(mistake, missed_predicted.get(mistake) + 1);
+                        }
+                        else{
+                            missed_predicted.put(mistake, 1);
+                        }
+                        //if (c.toString().equals("it") || c.toString().equals("which") || c.toString().equals("It") || c.toString().equals("him")) {
+                            System.out.println("[DOC]: " + ta.getText());
+                            System.out.println("[SENTENCE]: " + ta.getSentence(c.getSentenceId()));
+                            System.out.println("[PREDICTED]: " + c.toString() + " | " + getEntityHeadForConstituent(c, ta, "A").toString());
+                        //}
+                    }
+                }
+                Set<String> missed_gold_list = missed_gold.keySet();
+                for (Constituent c : goldMentions){
+                    if (consMap.get(c) != null){
+                        String hit = c.toString();
+                        if (missed_gold_list.contains(hit)){
+                            if (missed_gold_hit.containsKey(hit)){
+                                missed_gold_hit.put(hit, missed_gold_hit.get(hit) + 1);
+                            }
+                            else {
+                                missed_gold_hit.put(hit, 1);
+                            }
+                        }
                     }
                 }
                 List<Relation> goldRelations = ta.getView(ViewNames.MENTION_ACE).getRelations();
@@ -106,7 +168,15 @@ public class RelationAnnotatorStatistics {
                         }
                     }
                 }
-                //break;
+                if (docCount > 20) {
+                    break;
+                }
+            }
+            //ValueComparator bvc = new ValueComparator(missed_gold);
+            //TreeMap<String, Integer> sorted_missed_gold = new TreeMap<>(bvc);
+
+            for (String s : missed_predicted.keySet()){
+                System.out.println(s + "\t" + missed_predicted.get(s));
             }
             System.out.println("=======Relation Performance======");
             System.out.println("Total count: " + total_count);

@@ -72,10 +72,10 @@ public class AllTest {
 		catch (Exception e){
 			e.printStackTrace();
 		}
-		String modelPrefix = "4_tc_ns_";
+		String modelPrefix = "all_tc_";
 		MentionDecoder mdDec =
-				new ExtendHeadsDecoder(new MDExtendHeads("models_exp/" + modelPrefix + "md_extent.lc", "models_exp/" + modelPrefix + "md_extent.lex"),
-						new BIODecoder(new MentionDetectorMyBIOHead("models_exp/" + modelPrefix + "md_head.lc", "models_exp/" + modelPrefix + "md_head.lex")));
+				new ExtendHeadsDecoder(new MDExtendHeads("models/" + modelPrefix + "md_extent.lc", "models/" + modelPrefix + "md_extent.lex"),
+						new BIODecoder(new MentionDetectorMyBIOHead("models/" + modelPrefix + "md_head.lc", "models/" + modelPrefix + "md_head.lex")));
 		MTypePredictor mTyper = new MTypePredictor("models/md_tmp_type.lc", "models/md_tmp_type.lex");
 		DocLoader loader = new DocFromTaLoader(mdDec, mTyper);
 		Doc doc_test = loader.loadDoc(ta);
