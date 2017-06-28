@@ -453,6 +453,10 @@ public class ACERelationTester {
         int total_correct = 0;
         int total_labeled = 0;
         int total_predicted = 0;
+
+        int total_true_correct = 0;
+        int total_true_labeled = 0;
+        int total_true_predicted = 0;
         for (int i = 0; i < 5; i++) {
             binary_relation_classifier binary_classifier = new binary_relation_classifier("models/binary_classifier_fold_" + i + ".lc",
                     "models/binary_classifier_fold_" + i + ".lex");
@@ -482,6 +486,8 @@ public class ACERelationTester {
             ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
             Parser parser_full = new PredictedMentionReader("data/partition/eval/" + i);
             for (Object example = parser_full.next(); example != null; example = parser_full.next()){
+                Relation exampleRelation = (Relation)example;
+                boolean isGold = exampleRelation.getAttribute("IsGoldRelation").equals("True");
                 String predicted_label = constrainedClassifier.discreteValue(example);
                 if (is_null(binary_classifier, example)){
                     //predicted_label = "NOT_RELATED";
@@ -489,26 +495,35 @@ public class ACERelationTester {
                 }
                 if (predicted_label.equals("NOT_RELATED") == false){
                     total_predicted ++;
+                    if (isGold){
+                        total_true_predicted ++;
+                    }
                 }
                 String gold_label = output.discreteValue(example);
                 if (gold_label.equals("NOT_RELATED") == false){
                     total_labeled ++;
+                    if (isGold){
+                        total_true_labeled ++;
+                    }
                 }
                 if (getCoarseType(predicted_label).equals(getCoarseType(gold_label))){
                 //if (predicted_label.equals(gold_label)){
                     if (predicted_label.equals("NOT_RELATED") == false){
                         total_correct ++;
+                        if (isGold){
+                            total_true_correct ++;
+                        }
                     }
                 }
             }
-            /*
-            TestDiscrete tester_full = TestDiscrete.testDiscrete(constrainedClassifier, output, parser_full);
-            tester_full.printPerformance(System.out);
-            */
             classifier.forget();
             parser_full.reset();
             train_parser.reset();
         }
+        System.out.println("Total True labeled: " + total_true_labeled);
+        System.out.println("Total True predicted: " + total_true_predicted);
+        System.out.println("Total True correct: " + total_true_correct);
+        System.out.println("=================");
         System.out.println("Total labeled: " + total_labeled);
         System.out.println("Total predicted: " + total_predicted);
         System.out.println("Total correct: " + total_correct);

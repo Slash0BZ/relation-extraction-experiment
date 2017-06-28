@@ -113,6 +113,16 @@ public class RelationAnnotatorStatistics {
                         else{
                             missed_gold.put(mistake, 1);
                         }
+                        if (c.toString().toLowerCase().contains("it")) {
+                            /*
+                            System.out.println(ta.getId());
+                            System.out.println("[DOC]: " + ta.getText());
+                            System.out.println("[SENTENCE]: " + ta.getSentence(c.getSentenceId()));
+                            System.out.println("Sentence start at " + ta.getSentence(c.getSentenceId()).getStartSpan());
+                            System.out.println("Mention start at " + c.getStartSpan());
+                            System.out.println("[PREDICTED_GOLD]: " + c.toString() + " | " + getEntityHeadForConstituent(c, ta, "A").toString());
+                            */
+                        }
                     }
                 }
                 for (Constituent c : predictedMentions){
@@ -124,11 +134,11 @@ public class RelationAnnotatorStatistics {
                         else{
                             missed_predicted.put(mistake, 1);
                         }
-                        //if (c.toString().equals("it") || c.toString().equals("which") || c.toString().equals("It") || c.toString().equals("him")) {
+                        if (c.toString().equals("it")) {
                             System.out.println("[DOC]: " + ta.getText());
                             System.out.println("[SENTENCE]: " + ta.getSentence(c.getSentenceId()));
                             System.out.println("[PREDICTED]: " + c.toString() + " | " + getEntityHeadForConstituent(c, ta, "A").toString());
-                        //}
+                        }
                     }
                 }
                 Set<String> missed_gold_list = missed_gold.keySet();
@@ -169,14 +179,14 @@ public class RelationAnnotatorStatistics {
                     }
                 }
                 if (docCount > 20) {
-                    break;
+                    //break;
                 }
             }
             //ValueComparator bvc = new ValueComparator(missed_gold);
             //TreeMap<String, Integer> sorted_missed_gold = new TreeMap<>(bvc);
 
-            for (String s : missed_predicted.keySet()){
-                System.out.println(s + "\t" + missed_predicted.get(s));
+            for (String s : missed_gold.keySet()){
+                System.out.println(s + "\t" + missed_gold.get(s));
             }
             System.out.println("=======Relation Performance======");
             System.out.println("Total count: " + total_count);

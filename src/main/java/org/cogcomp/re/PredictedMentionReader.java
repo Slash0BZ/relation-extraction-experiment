@@ -94,8 +94,10 @@ public class PredictedMentionReader implements Parser{
                         Constituent pch = getEntityHeadForConstituent(pc, ta, "TESTP");
                         //if (ch.getStartSpan() == pch.getStartSpan() && ch.getEndSpan() == pch.getEndSpan()){
                         if ((ch.getStartSpan() >= pch.getEndSpan() || pch.getStartSpan() >= ch.getEndSpan()) == false){
-                                consMap.put(c, pc);
-                                break;
+                            pc.addAttribute("EntityType", c.getAttribute("EntityType"));
+                            pc.addAttribute("EntitySubtype", c.getAttribute("EntitySubtype"));
+                            consMap.put(c, pc);
+                            break;
                         }
                     }
                 }
@@ -127,10 +129,12 @@ public class PredictedMentionReader implements Parser{
                                     Relation newRelation = new Relation(r.getAttribute("RelationSubtype"), source, target, 1.0f);
                                     newRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
                                     newRelation.addAttribute("RelationSubtype", r.getAttribute("RelationSubtype"));
+                                    newRelation.addAttribute("IsGoldRelation", "True");
                                     String opTypeName = getOppoName(r.getAttribute("RelationSubtype"));
                                     Relation newOpRelation = new Relation(opTypeName, target, source, 1.0f);
                                     newOpRelation.addAttribute("RelationType", r.getAttribute("RelationType") + "_OP");
                                     newOpRelation.addAttribute("RelationSubtype", opTypeName);
+                                    newOpRelation.addAttribute("IsGoldRelation", "True");
                                     relations.add(newRelation);
                                     relations.add(newOpRelation);
                                     found_tag = true;
@@ -147,10 +151,12 @@ public class PredictedMentionReader implements Parser{
                                     Relation newRelation = new Relation(r.getAttribute("RelationSubtype"), target, source, 1.0f);
                                     newRelation.addAttribute("RelationType", r.getAttribute("RelationType"));
                                     newRelation.addAttribute("RelationSubtype", r.getAttribute("RelationSubtype"));
+                                    newRelation.addAttribute("IsGoldRelation", "True");
                                     String opTypeName = getOppoName(r.getAttribute("RelationSubtype"));
                                     Relation newOpRelation = new Relation(opTypeName, source, target, 1.0f);
                                     newOpRelation.addAttribute("RelationType", r.getAttribute("RelationType") + "_OP");
                                     newOpRelation.addAttribute("RelationSubtype", opTypeName);
+                                    newOpRelation.addAttribute("IsGoldRelation", "True");
                                     relations.add(newRelation);
                                     relations.add(newOpRelation);
                                     found_tag = true;
@@ -161,9 +167,11 @@ public class PredictedMentionReader implements Parser{
                                 Relation newRelation = new Relation("NOT_RELATED", source, target, 1.0f);
                                 newRelation.addAttribute("RelationType", "NOT_RELATED");
                                 newRelation.addAttribute("RelationSubtype", "NOT_RELATED");
+                                newRelation.addAttribute("IsGoldRelation", "False");
                                 Relation newRelationOp = new Relation("NOT_RELATED", target, source, 1.0f);
                                 newRelationOp.addAttribute("RelationType", "NOT_RELATED");
                                 newRelationOp.addAttribute("RelationSubtype", "NOT_RELATED");
+                                newRelationOp.addAttribute("IsGoldRelation", "False");
                                 relations.add(newRelation);
                                 relations.add(newRelationOp);
                             }
