@@ -47,7 +47,7 @@ public class ACEMentionReader implements Parser
     private String readType = "NULL";
     private double trim_factor = 0.5;
 
-    private static Constituent getEntityHeadForConstituent(Constituent extentConstituent,
+    public static Constituent getEntityHeadForConstituent(Constituent extentConstituent,
                                                            TextAnnotation textAnnotation,
                                                            String viewName) {
         int startCharOffset =

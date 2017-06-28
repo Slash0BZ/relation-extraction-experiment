@@ -1,9 +1,19 @@
 package org.cogcomp.re;
 
+import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.lbjava.learn.BatchTrainer;
 import edu.illinois.cs.cogcomp.lbjava.learn.Lexicon;
 import edu.illinois.cs.cogcomp.lbjava.parse.Parser;
+import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
+import edu.stanford.nlp.ling.CoreAnnotations;
+import opennlp.tools.parser.Cons;
 import org.omg.CORBA.OBJ_ADAPTER;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 
 /**
  * Created by xuany on 6/22/2017.
@@ -130,7 +140,39 @@ public class EntityTyperTester {
         esc.save();
     }
 
+    public static void exportColumnFormat(){
+        try {
+            for (int i = 0; i < 1; i++) {
+                ACEReader aceReader = new ACEReader("data/partition_with_dev/dev/", false);
+                BufferedWriter bw = new BufferedWriter(new FileWriter("outputs/forNER/dev"));
+                for (TextAnnotation ta : aceReader){
+                    View tokenView = ta.getView(ViewNames.TOKENS);
+                    View entityView = ta.getView(ViewNames.MENTION_ACE);
+                    String[] tokens = new String[tokenView.getConstituents().size()];
+                    for (Constituent c : entityView.getConstituents()){
+                        Constituent cHead = ACEMentionReader.getEntityHeadForConstituent(c, ta, "A");
+                        tokens[cHead.getStartSpan()] = "B-" + c.getAttribute("EntityType").toUpperCase();
+                        for (int j = cHead.getStartSpan() + 1; j < cHead.getEndSpan(); j++){
+                            tokens[j] = "I-" + c.getAttribute("EntityType").toUpperCase();
+                        }
+                    }
+                    for (int j = 0; j < tokenView.getConstituents().size(); j++){
+                        String tag = "o";
+                        if (tokens[j] != null){
+                            tag = tokens[j];
+                        }
+                        String line = tag + "\t0\t" + j + "\to\to\t" + tokenView.getConstituents().get(j).toString() + "\tx\tx\t0";
+                        bw.write(line + "\n");
+                    }
+                }
+            }
+        }
+        catch (Exception e ){
+            e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args){
-        arbiTests();
+        exportColumnFormat();
     }
 }
