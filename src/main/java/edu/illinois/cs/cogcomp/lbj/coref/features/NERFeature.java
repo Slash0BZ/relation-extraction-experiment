@@ -1,6 +1,10 @@
 package edu.illinois.cs.cogcomp.lbj.coref.features;
 
 import java.util.List;
+
+import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.lbj.coref.Parameters;
 import edu.illinois.cs.cogcomp.lbj.coref.ir.Mention;
 import edu.illinois.cs.cogcomp.lbj.coref.ir.docs.Doc;
@@ -53,12 +57,16 @@ public class NERFeature {
 
   public static String getHeadNER(Mention m)
 	{
-	  return EntityTypeFeatures.getEType(m); 
-	  /*
-	  if(m.getDoc().getTextAnnotation() ==null|| !m.getDoc().getTextAnnotation().hasView(ViewNames.NER))
+	  //return EntityTypeFeatures.getEType(m);
+	  if(m.getDoc().getTextAnnotation() ==null|| !m.getDoc().getTextAnnotation().hasView(ViewNames.NER_CONLL)) {
+		  System.out.println("Returning with no ner view");
 		  return Constants.NER_UNKNOWN;
+	  }
 	  
-	  	View nerView = m.getDoc().getTextAnnotation().getView(ViewNames.NER);
+	  	View nerView = m.getDoc().getTextAnnotation().getView(ViewNames.NER_CONLL);
+	  	if (nerView != null) {
+			System.out.println("NER view checked");
+		}
 		List<Constituent> consCoverM = nerView.getConstituentsCoveringSpan(m.getHead().getStartWN(), m.getHead().getEndWN()+1);
 		String result = Constants.NER_UNKNOWN;
 		if(consCoverM.size()>0)
@@ -93,7 +101,7 @@ public class NERFeature {
 		      result = Constants.NER_UNKNOWN;
 		    }
 		}
-		return result;*/
+		return result;
 	}
 }
 

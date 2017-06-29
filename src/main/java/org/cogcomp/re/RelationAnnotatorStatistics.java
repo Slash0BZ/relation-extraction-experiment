@@ -113,15 +113,15 @@ public class RelationAnnotatorStatistics {
                         else{
                             missed_gold.put(mistake, 1);
                         }
-                        if (c.toString().toLowerCase().contains("it")) {
-                            /*
+                        if (c.toString().toLowerCase().contains("nasdaq") || c.toString().toLowerCase().contains("times")) {
+
                             System.out.println(ta.getId());
                             System.out.println("[DOC]: " + ta.getText());
                             System.out.println("[SENTENCE]: " + ta.getSentence(c.getSentenceId()));
                             System.out.println("Sentence start at " + ta.getSentence(c.getSentenceId()).getStartSpan());
                             System.out.println("Mention start at " + c.getStartSpan());
                             System.out.println("[PREDICTED_GOLD]: " + c.toString() + " | " + getEntityHeadForConstituent(c, ta, "A").toString());
-                            */
+
                         }
                     }
                 }
@@ -135,9 +135,9 @@ public class RelationAnnotatorStatistics {
                             missed_predicted.put(mistake, 1);
                         }
                         if (c.toString().equals("it")) {
-                            System.out.println("[DOC]: " + ta.getText());
-                            System.out.println("[SENTENCE]: " + ta.getSentence(c.getSentenceId()));
-                            System.out.println("[PREDICTED]: " + c.toString() + " | " + getEntityHeadForConstituent(c, ta, "A").toString());
+                            //System.out.println("[DOC]: " + ta.getText());
+                            //System.out.println("[SENTENCE]: " + ta.getSentence(c.getSentenceId()));
+                            //System.out.println("[PREDICTED]: " + c.toString() + " | " + getEntityHeadForConstituent(c, ta, "A").toString());
                         }
                     }
                 }

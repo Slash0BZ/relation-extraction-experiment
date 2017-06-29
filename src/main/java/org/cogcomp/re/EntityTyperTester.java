@@ -14,6 +14,8 @@ import org.omg.CORBA.OBJ_ADAPTER;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by xuany on 6/22/2017.
@@ -142,8 +144,8 @@ public class EntityTyperTester {
 
     public static void exportColumnFormat(){
         try {
-            for (int i = 0; i < 1; i++) {
-                ACEReader aceReader = new ACEReader("data/partition_with_dev/dev/", false);
+            for (int i = 0; i < 5; i++) {
+                ACEReader aceReader = new ACEReader("data/partition_with_dev/dev", false);
                 BufferedWriter bw = new BufferedWriter(new FileWriter("outputs/forNER/dev"));
                 for (TextAnnotation ta : aceReader){
                     View tokenView = ta.getView(ViewNames.TOKENS);
@@ -161,10 +163,11 @@ public class EntityTyperTester {
                         if (tokens[j] != null){
                             tag = tokens[j];
                         }
-                        String line = tag + "\t0\t" + j + "\to\to\t" + tokenView.getConstituents().get(j).toString() + "\tx\tx\t0";
-                        bw.write(line + "\n");
+                        String line = tag + "\t0\t" + j + "\to\to\t" + tokenView.getConstituents().get(j).toString() + "\tx\tx\t0\n";
+                        bw.write(line);
                     }
                 }
+                bw.close();
             }
         }
         catch (Exception e ){
