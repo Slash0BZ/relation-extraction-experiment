@@ -90,10 +90,6 @@ public class AllTest {
 			newCons.addAttribute("EntityHeadEndCharOffset", Integer.toString(headCharEnd));
 			newCons.addAttribute("EntityMentionType", m.getType());
 			ret.add(newCons);
-			/*
-			System.out.println(m.getType()+"\t"+m.getHead().getCleanText()+"\t"+m.getHead().getStart()+"\t"+m.getHead().getEnd()+"\t"+
-			                              m.getExtent().getCleanText()+"\t"+m.getExtent().getStart()+"\t"+m.getExtent().getEnd()+"\n");
-			                    */
 		}
 		return ret;
 	}
