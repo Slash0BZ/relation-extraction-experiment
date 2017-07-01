@@ -4,6 +4,7 @@ import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Relation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.lbj.coref.main.AllTest;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 import sun.reflect.generics.tree.Tree;
@@ -54,6 +55,13 @@ public class RelationAnnotatorStatistics {
             entity_type_classifier etc = new entity_type_classifier("models/entity_type_classifier.lc", "models/entity_type_classifier.lex");
             entity_subtype_classifier esc = new entity_subtype_classifier("models/entity_subtype_classifier.lc", "models/entity_subtype_classifier.lex");
             for (TextAnnotation ta : aceReader){
+                for (int i = 0; i < ta.getNumberOfSentences(); i++){
+                    View mentionView = ta.getView(ViewNames.MENTION_ACE);
+                    System.out.println("[SENTENCE]: " + ta.getSentence(i));
+                    for (Constituent c : mentionView.getConstituentsCoveringSpan(ta.getSentence(i).getStartSpan(), ta.getSentence(i).getEndSpan())){
+                       System.out.println("[MENTINO]: " + c.toString());
+                    }
+                }
                 docCount++;
                 //System.out.println("[DOC]: " + ta.getText());
                 Map<Constituent, Constituent> consMap = new HashMap<Constituent, Constituent>();
@@ -162,15 +170,15 @@ public class RelationAnnotatorStatistics {
                         }
                     }
                 }
-                if (docCount > 20) {
-                    //break;
+                if (docCount > 5) {
+                    break;
                 }
             }
             //ValueComparator bvc = new ValueComparator(missed_gold);
             //TreeMap<String, Integer> sorted_missed_gold = new TreeMap<>(bvc);
 
             for (String s : missed_gold.keySet()){
-                System.out.println(s + "\t" + missed_gold.get(s));
+                //System.out.println(s + "\t" + missed_gold.get(s));
             }
             System.out.println("=======Relation Performance======");
             System.out.println("Total count: " + total_count);
