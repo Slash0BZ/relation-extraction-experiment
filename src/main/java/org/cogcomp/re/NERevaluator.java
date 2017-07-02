@@ -23,27 +23,7 @@ public class NERevaluator {
     private static Constituent getEntityHeadForConstituent(Constituent extentConstituent,
                                                            TextAnnotation textAnnotation,
                                                            String viewName) {
-        int startCharOffset =
-                Integer.parseInt(extentConstituent
-                        .getAttribute(ACEReader.EntityHeadStartCharOffset));
-        int endCharOffset =
-                Integer.parseInt(extentConstituent.getAttribute(ACEReader.EntityHeadEndCharOffset)) - 1;
-        int startToken = textAnnotation.getTokenIdFromCharacterOffset(startCharOffset);
-        int endToken = textAnnotation.getTokenIdFromCharacterOffset(endCharOffset);
-
-        if (startToken >= 0 && endToken >= 0 && !(endToken - startToken < 0)) {
-            Constituent cons =
-                    new Constituent(extentConstituent.getLabel(), 1.0, viewName, textAnnotation,
-                            startToken, endToken + 1);
-
-            for (String attributeKey : extentConstituent.getAttributeKeys()) {
-                cons.addAttribute(attributeKey, extentConstituent.getAttribute(attributeKey));
-            }
-
-            return cons;
-        }
-
-        return null;
+        return ACEMentionReader.getEntityHeadForConstituent(extentConstituent, textAnnotation, viewName);
     }
 
     public static void calculate_ner_hit(){

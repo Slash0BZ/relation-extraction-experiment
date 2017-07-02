@@ -7,7 +7,6 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.lbj.coref.main.AllTest;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
-import sun.reflect.generics.tree.Tree;
 
 import java.util.*;
 
@@ -57,9 +56,9 @@ public class RelationAnnotatorStatistics {
             for (TextAnnotation ta : aceReader){
                 for (int i = 0; i < ta.getNumberOfSentences(); i++){
                     View mentionView = ta.getView(ViewNames.MENTION_ACE);
-                    System.out.println("[SENTENCE]: " + ta.getSentence(i));
+                    //System.out.println("[SENTENCE]: " + ta.getSentence(i));
                     for (Constituent c : mentionView.getConstituentsCoveringSpan(ta.getSentence(i).getStartSpan(), ta.getSentence(i).getEndSpan())){
-                       System.out.println("[MENTINO]: " + c.toString());
+                       //System.out.println("[MENTION]: " + c.toString());
                     }
                 }
                 docCount++;

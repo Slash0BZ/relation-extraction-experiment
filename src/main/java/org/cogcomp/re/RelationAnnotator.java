@@ -9,25 +9,10 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.lbj.coref.main.AllTest;
-/*
-import edu.illinois.cs.cogcomp.lbj.coref.decoders.BIODecoder;
-import edu.illinois.cs.cogcomp.lbj.coref.decoders.ExtendHeadsDecoder;
-import edu.illinois.cs.cogcomp.lbj.coref.decoders.MentionDecoder;
-import edu.illinois.cs.cogcomp.lbj.coref.io.loaders.DocFromTextLoader;
-import edu.illinois.cs.cogcomp.lbj.coref.io.loaders.DocLoader;
-import edu.illinois.cs.cogcomp.lbj.coref.ir.Mention;
-import edu.illinois.cs.cogcomp.lbj.coref.ir.docs.Doc;
-import edu.illinois.cs.cogcomp.lbj.coref.learned.MDExtendHeads;
-import edu.illinois.cs.cogcomp.lbj.coref.learned.MTypePredictor;
-import edu.illinois.cs.cogcomp.lbj.coref.learned.MentionDetectorMyBIOHead;
-import edu.illinois.cs.cogcomp.lbj.coref.util.MyCuratorClient;
-import edu.illinois.cs.cogcomp.lbj.coref.util.aux.Constants;
-*/
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 
 

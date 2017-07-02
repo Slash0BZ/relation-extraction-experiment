@@ -8,11 +8,9 @@ import edu.illinois.cs.cogcomp.lbjava.parse.Parser;
 import edu.illinois.cs.cogcomp.pipeline.server.ServerClientAnnotator;
 import edu.illinois.cs.cogcomp.edison.annotators.*;
 import edu.illinois.cs.cogcomp.pos.POSAnnotator;
-import edu.illinois.cs.cogcomp.pipeline.handlers.StanfordTrueCaseHandler;
 import edu.illinois.cs.cogcomp.wsd.Entry;
 import edu.illinois.cs.cogcomp.wsd.annotators.WordSenseAnnotator;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.lang.*;
 

@@ -1,21 +1,16 @@
 package org.cogcomp.re;
 
-import edu.illinois.cs.cogcomp.lbjava.classify.Classifier;
 import edu.illinois.cs.cogcomp.lbjava.classify.Score;
 import edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet;
 import edu.illinois.cs.cogcomp.lbjava.classify.TestDiscrete;
-import org.cogcomp.re.*;
 import edu.illinois.cs.cogcomp.lbjava.learn.*;
 import edu.illinois.cs.cogcomp.lbjava.parse.*;
-import org.cogcomp.re.ACEMentionReader;
 
 import java.io.File;
 import java.util.*;
 
 import java.lang.*;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
-import org.cogcomp.re.ACERelationConstrainedClassifier;
-import org.cogcomp.re.PredictedMentionReader;
 
 public class ACERelationTester {
     public static void processList(List<Object> in, double rate){
