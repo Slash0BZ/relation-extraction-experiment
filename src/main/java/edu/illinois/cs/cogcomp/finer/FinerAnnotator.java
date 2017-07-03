@@ -41,8 +41,9 @@ public class FinerAnnotator extends Annotator {
     public void addView(TextAnnotation ta) {
         List<FineTypeConstituent> fineTypes = this.getAllFineTypeConstituents(ta);
         View finalAnnotation = new SpanLabelView(VIEW_NAME, ta);
-        for (Constituent c : fineTypes) {
-            finalAnnotation.addConstituent(c);
+        for (FineTypeConstituent c : fineTypes) {
+            Optional<Constituent> ret = c.toConstituent();
+            ret.ifPresent(finalAnnotation::addConstituent);
         }
         ta.addView(VIEW_NAME, finalAnnotation);
     }

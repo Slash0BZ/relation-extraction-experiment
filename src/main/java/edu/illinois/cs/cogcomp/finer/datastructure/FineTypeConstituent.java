@@ -64,4 +64,14 @@ public class FineTypeConstituent extends Constituent {
         return reasons.getOrDefault(type, new ArrayList<>());
     }
 
+    public Optional<Constituent> toConstituent() {
+        this.finish();
+        if (labelsToScores.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(new Constituent(labelsToScores, this.viewName, this.textAnnotation, getStartSpan(), getEndSpan()));
+        }
+
+    }
+
 }

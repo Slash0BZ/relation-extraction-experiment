@@ -99,38 +99,47 @@ public class FinerTyperFactory {
         return new BasicMentionDetection(new TypeMapper(this.typeSystem, ret));
     }
 
-    public IFinerTyper getKBBiasTyper(InputStream is) throws IOException {
+    private IFinerTyper getKBBiasTyper(InputStream is) throws IOException {
         Map<String, Map<FinerType, Double>> map = new HashMap<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String line;
         while ((line = reader.readLine()) != null) {
-            String[] parts = line.split("\t");
+            String[] parts = line.split("\\t");
             String pattern = parts[0];
             Map<FinerType, Double> scoreMap = new HashMap<>();
-            for (String typeAndScore : parts[1].split(" ")) {
-                FinerType type = getType(typeAndScore.split(":")[0]);
-                double score = Double.parseDouble(typeAndScore.split(":")[1]);
-                scoreMap.put(type, score);
+            try {
+                for (String typeAndScore : parts[1].split(" ")) {
+                    FinerType type = getTypeOrFail(typeAndScore.split(":")[0]);
+                    double score = Double.parseDouble(typeAndScore.split(":")[1]);
+                    scoreMap.put(type, score);
+                }
+                map.put(pattern, scoreMap);
+            } catch (RuntimeException exp) {
+                System.err.println("[" + line + "] failed to process..");
             }
-             map.put(pattern, scoreMap);
+
         }
         return new SimpleKBBiasTyper(map);
     }
 
-    public IFinerTyper getHypTyper(InputStream is) throws IOException {
+    private IFinerTyper getHypTyper(InputStream is) throws IOException {
         Map<String, List<FinerType>> map = new HashMap<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String line;
         while ((line = reader.readLine()) != null) {
             String[] parts = line.split("\t");
             String synsetId = parts[0];
-            List<FinerType> types = Arrays.stream(parts[1].split(" ")).map(this::getType).collect(Collectors.toList());
+            List<FinerType> types = Arrays.stream(parts[1].split(" "))
+                    .map(this::getType)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toList());
             map.put(synsetId, types);
         }
         return new SimpleHypernymTyper(map);
     }
 
-    public IFinerTyper getPatternTyper(InputStream is) throws IOException {
+    private IFinerTyper getPatternTyper(InputStream is) throws IOException {
         Map<SimplePattern, List<FinerType>> map = new HashMap<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String line;
@@ -143,16 +152,25 @@ public class FinerTyperFactory {
 
             SimplePattern pattern = new SimplePattern(before, after, tokens);
 
-            List<FinerType> types = Arrays.stream(parts[3].split(" ")).map(this::getType).collect(Collectors.toList());
+            List<FinerType> types = Arrays.stream(parts[3].split(" "))
+                    .map(this::getType)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toList());
             map.put(pattern, types);
         }
         return new SimplePatternBasedTyper(map);
 
     }
 
-    private FinerType getType(String name) {
+    private FinerType getTypeOrFail(String name) {
+        return this.typeSystem.getTypeOrFail(name);
+    }
+
+    private Optional<FinerType> getType(String name) {
         return this.typeSystem.getType(name);
     }
+
 
     private TypeSystem typeSystem = null;
     private MentionDetecter mentionDetecter = null;

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.*;
 
 /**
  * Created by haowu4 on 5/15/17.
@@ -80,8 +81,32 @@ public class TypeSystem {
     private Map<String, FinerType> typeCollection;
     private Set<FinerType> invisiableTypes;
 
-    public FinerType getType(String name) {
-        return typeCollection.get(name);
+    public FinerType getTypeOrFail(String name) {
+        if (typeCollection.containsKey(name)) {
+            FinerType t = typeCollection.get(name);
+            if (t != null) {
+                return t;
+            } else {
+                throw new RuntimeException("Type [" + name + "] is NULL.");
+            }
+        } else {
+            throw new RuntimeException("Type [" + name + "] Not Found");
+        }
+    }
+
+    public Set<String> failedQueries = new HashSet<>();
+
+    public Optional<FinerType> getType(String name) {
+        FinerType t = typeCollection.get(name);
+        if (t == null) {
+            if (!failedQueries.contains(name)) {
+                failedQueries.add(name);
+                System.err.println("Type [" + name + "] Not Found");
+            }
+            return Optional.empty();
+        } else {
+            return Optional.of(t);
+        }
     }
 
 }

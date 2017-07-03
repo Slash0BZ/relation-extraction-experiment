@@ -20,7 +20,7 @@ public class TypeMapper {
     public FinerType getType(String label) {
         String tname = mapping.getOrDefault(label, null);
         if (tname != null)
-            return types.getType(tname);
+            return types.getTypeOrFail(tname);
         else {
             return null;
         }
