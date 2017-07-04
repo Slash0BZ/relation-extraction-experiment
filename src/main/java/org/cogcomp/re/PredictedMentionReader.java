@@ -1,5 +1,4 @@
 package org.cogcomp.re;
-import com.sun.org.apache.regexp.internal.RE;
 import edu.illinois.cs.cogcomp.chunker.main.ChunkerAnnotator;
 import edu.illinois.cs.cogcomp.chunker.main.ChunkerConfigurator;
 import edu.illinois.cs.cogcomp.lbj.coref.main.AllTest;
@@ -8,7 +7,6 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.lbjava.parse.Parser;
 import edu.illinois.cs.cogcomp.pipeline.server.ServerClientAnnotator;
-//import edu.illinois.cs.cogcomp.pos.*;
 import edu.illinois.cs.cogcomp.edison.annotators.*;
 import edu.illinois.cs.cogcomp.pos.POSAnnotator;
 
@@ -27,23 +25,7 @@ public class PredictedMentionReader implements Parser{
     private static Constituent getEntityHeadForConstituent(Constituent extentConstituent,
                                                            TextAnnotation textAnnotation,
                                                            String viewName) {
-        int startCharOffset =
-                Integer.parseInt(extentConstituent
-                        .getAttribute(ACEReader.EntityHeadStartCharOffset));
-        int endCharOffset =
-                Integer.parseInt(extentConstituent.getAttribute(ACEReader.EntityHeadEndCharOffset)) - 1;
-        int startToken = textAnnotation.getTokenIdFromCharacterOffset(startCharOffset);
-        int endToken = textAnnotation.getTokenIdFromCharacterOffset(endCharOffset);
-        if (startToken >= 0 && endToken >= 0 && !(endToken - startToken < 0)) {
-            Constituent cons =
-                    new Constituent(extentConstituent.getLabel(), 1.0, viewName, textAnnotation,
-                            startToken, endToken + 1);
-            for (String attributeKey : extentConstituent.getAttributeKeys()) {
-                cons.addAttribute(attributeKey, extentConstituent.getAttribute(attributeKey));
-            }
-            return cons;
-        }
-        return null;
+        return ACEMentionReader.getEntityHeadForConstituent(extentConstituent, textAnnotation, viewName);
     }
 
     public boolean skipTypes(String type){

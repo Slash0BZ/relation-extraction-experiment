@@ -99,7 +99,7 @@ public class FinerTyperFactory {
         return new BasicMentionDetection(new TypeMapper(this.typeSystem, ret));
     }
 
-    private IFinerTyper getKBBiasTyper(InputStream is) throws IOException {
+    public IFinerTyper getKBBiasTyper(InputStream is) throws IOException {
         Map<String, Map<FinerType, Double>> map = new HashMap<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String line;
@@ -122,7 +122,7 @@ public class FinerTyperFactory {
         return new SimpleKBBiasTyper(map);
     }
 
-    private IFinerTyper getHypTyper(InputStream is) throws IOException {
+    public IFinerTyper getHypTyper(InputStream is) throws IOException {
         Map<String, List<FinerType>> map = new HashMap<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String line;
@@ -139,7 +139,7 @@ public class FinerTyperFactory {
         return new SimpleHypernymTyper(map);
     }
 
-    private IFinerTyper getPatternTyper(InputStream is) throws IOException {
+    public IFinerTyper getPatternTyper(InputStream is) throws IOException {
         Map<SimplePattern, List<FinerType>> map = new HashMap<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String line;

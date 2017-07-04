@@ -531,6 +531,6 @@ public class ACERelationTester {
         //delete_files();
     }
     public static void main(String[] args){
-        test_constraint();
+        test_constraint_predicted();
     }
 }
