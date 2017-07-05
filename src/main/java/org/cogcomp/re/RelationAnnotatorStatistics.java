@@ -170,7 +170,7 @@ public class RelationAnnotatorStatistics {
                     }
                 }
                 if (docCount > 5) {
-                    break;
+                    //break;
                 }
             }
             //ValueComparator bvc = new ValueComparator(missed_gold);

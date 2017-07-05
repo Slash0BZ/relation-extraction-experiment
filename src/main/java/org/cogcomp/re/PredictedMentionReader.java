@@ -76,8 +76,8 @@ public class PredictedMentionReader implements Parser{
                         Constituent pch = getEntityHeadForConstituent(pc, ta, "TESTP");
                         //if (ch.getStartSpan() == pch.getStartSpan() && ch.getEndSpan() == pch.getEndSpan()){
                         if ((ch.getStartSpan() >= pch.getEndSpan() || pch.getStartSpan() >= ch.getEndSpan()) == false){
-                            //pc.addAttribute("EntityType", c.getAttribute("EntityType"));
-                            //pc.addAttribute("EntitySubtype", c.getAttribute("EntitySubtype"));
+                            pc.addAttribute("EntityType", c.getAttribute("EntityType"));
+                            pc.addAttribute("EntitySubtype", c.getAttribute("EntitySubtype"));
                             consMap.put(c, pc);
                             break;
                         }
