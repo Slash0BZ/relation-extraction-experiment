@@ -16,12 +16,12 @@ This current version only supports experimenting relation-extraction with gold A
 
  - `cd` into the working folder
 
- - `wget http://ddns.meiguo.work/public/relation-extraction-supp.zip`
+ - `wget http://ddns.meiguo.work/public/re-supp.zip`
  
- - `unzip relation-extraction-supp.zip`
+ - `unzip re-supp.zip`
  
  - `mvn lbjava:generate`
  
  - `mvn install`
  
- - `mvn exec:java -Dexec.mainClass="org.cogcomp.ACERelationTester"`
+ - `mvn exec:java -Dexec.mainClass="org.cogcomp.re.ACERelationTester"`
