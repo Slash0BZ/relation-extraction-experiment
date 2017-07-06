@@ -67,7 +67,6 @@ public class bioInDict extends Classifier
     String word = ex.getWord();
     if (Gazetteers.getLowercaseWords().contains(word) || Gazetteers.getStopWords().contains(word) || Gazetteers.getPronouns().contains(word) || Gazetteers.getInflectedWords().contains(word))
     {
-      System.out.println("returning true");
       return "true";
     }
     else

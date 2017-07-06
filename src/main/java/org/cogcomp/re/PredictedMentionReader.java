@@ -2,6 +2,7 @@ package org.cogcomp.re;
 import edu.illinois.cs.cogcomp.chunker.main.ChunkerAnnotator;
 import edu.illinois.cs.cogcomp.chunker.main.ChunkerConfigurator;
 import edu.illinois.cs.cogcomp.lbj.coref.main.AllTest;
+import edu.illinois.cs.cogcomp.ner.NERAnnotator;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
@@ -50,10 +51,12 @@ public class PredictedMentionReader implements Parser{
             BrownClusterViewGenerator bc_annotator = new BrownClusterViewGenerator("c1000", BrownClusterViewGenerator.file1000);
             ChunkerAnnotator chunker  = new ChunkerAnnotator(true);
             chunker.initialize(new ChunkerConfigurator().getDefaultConfig());
+            NERAnnotator co = new NERAnnotator(ViewNames.NER_CONLL);
             for (TextAnnotation ta : aceReader){
                 ta.addView(pos_annotator);
                 chunker.addView(ta);
                 bc_annotator.addView(ta);
+                co.addView(ta);
                 //annotator.addView(ta);
                 View predictedView = new SpanLabelView("RELATION_EXTRACTION_RELATIONS", RelationAnnotator.class.getCanonicalName(), ta, 1.0f, true);
                 View entityView = ta.getView(ViewNames.MENTION_ACE);

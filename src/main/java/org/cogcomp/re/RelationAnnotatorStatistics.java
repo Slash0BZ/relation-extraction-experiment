@@ -6,6 +6,7 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Relation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.lbj.coref.main.AllTest;
+import edu.illinois.cs.cogcomp.ner.NERAnnotator;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 
 import java.util.*;
@@ -42,6 +43,7 @@ public class RelationAnnotatorStatistics {
         Map<String, Integer> missed_gold_hit = new HashMap<>();
         Map<String, Integer> missed_predicted = new HashMap<>();
         try{
+            NERAnnotator co = new NERAnnotator(ViewNames.NER_CONLL);
             ACEReader aceReader = new ACEReader("data/partition_with_dev/eval/4", false);
             int total_count = 0;
             int total_match = 0;
@@ -54,6 +56,7 @@ public class RelationAnnotatorStatistics {
             entity_type_classifier etc = new entity_type_classifier("models/entity_type_classifier.lc", "models/entity_type_classifier.lex");
             entity_subtype_classifier esc = new entity_subtype_classifier("models/entity_subtype_classifier.lc", "models/entity_subtype_classifier.lex");
             for (TextAnnotation ta : aceReader){
+                co.getView(ta);
                 for (int i = 0; i < ta.getNumberOfSentences(); i++){
                     View mentionView = ta.getView(ViewNames.MENTION_ACE);
                     //System.out.println("[SENTENCE]: " + ta.getSentence(i));

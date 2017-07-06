@@ -115,7 +115,7 @@ public class FinerTyperFactory {
                 }
                 map.put(pattern, scoreMap);
             } catch (RuntimeException exp) {
-                System.err.println("[" + line + "] failed to process..");
+                //System.err.println("[" + line + "] failed to process..");
             }
 
         }

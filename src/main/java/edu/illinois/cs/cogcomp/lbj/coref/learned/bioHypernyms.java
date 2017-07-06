@@ -3,11 +3,17 @@
 
 package edu.illinois.cs.cogcomp.lbj.coref.learned;
 
+import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.lbj.coref.features.WordNetTools;
 import edu.illinois.cs.cogcomp.lbj.coref.ir.examples.WordExample;
 import edu.illinois.cs.cogcomp.lbjava.classify.Classifier;
 import edu.illinois.cs.cogcomp.lbjava.classify.DiscretePrimitiveStringFeature;
 import edu.illinois.cs.cogcomp.lbjava.classify.FeatureVector;
+
+import java.util.List;
 
 
 public class bioHypernyms extends Classifier
@@ -44,6 +50,18 @@ public class bioHypernyms extends Classifier
       __id = "" + (hyps[i]);
       __value = "true";
       __result.addFeature(new DiscretePrimitiveStringFeature(this.containingPackage, this.name, __id, __value, valueIndexOf(__value), (short) 0));
+    }
+
+    TextAnnotation ta = ex.getDoc().getTextAnnotation();
+    if (ta.hasView(ViewNames.NER_CONLL)){
+        View nerView = ta.getView(ViewNames.NER_CONLL);
+        int position = ex.getWordNum();
+        List<Constituent> cons = nerView.getConstituentsCoveringSpan(position, position + 1);
+        if (cons.size() > 0){
+            __id = "NER:" + cons.get(0).getLabel();
+            __value = "true";
+            __result.addFeature(new DiscretePrimitiveStringFeature(this.containingPackage, this.name, __id, __value, valueIndexOf(__value), (short) 0));
+        }
     }
     return __result;
   }
