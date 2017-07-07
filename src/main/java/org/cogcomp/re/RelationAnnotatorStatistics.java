@@ -44,7 +44,7 @@ public class RelationAnnotatorStatistics {
         Map<String, Integer> missed_predicted = new HashMap<>();
         try{
             NERAnnotator co = new NERAnnotator(ViewNames.NER_CONLL);
-            ACEReader aceReader = new ACEReader("data/partition_with_dev/eval/4", false);
+            ACEReader aceReader = new ACEReader("data/partition_with_dev/eval/3", false);
             int total_count = 0;
             int total_match = 0;
             int mention_type_match = 0;
@@ -107,16 +107,17 @@ public class RelationAnnotatorStatistics {
                         else{
                             missed_gold.put(mistake, 1);
                         }
-                        if (c.toString().toLowerCase().contains("nasdaq") || c.toString().toLowerCase().contains("times")) {
-
+                        //if (c.toString().toLowerCase().contains("nasdaq") || c.toString().toLowerCase().contains("times")) {
+                        Constituent pc = getEntityHeadForConstituent(c, ta, "A");
+                        if (ta.getView(ViewNames.NER_CONLL).getConstituentsCoveringSpan(pc.getStartSpan(), pc.getEndSpan()).size() > 0){
                             System.out.println(ta.getId());
                             System.out.println("[DOC]: " + ta.getText());
                             System.out.println("[SENTENCE]: " + ta.getSentence(c.getSentenceId()));
                             System.out.println("Sentence start at " + ta.getSentence(c.getSentenceId()).getStartSpan());
                             System.out.println("Mention start at " + c.getStartSpan());
                             System.out.println("[PREDICTED_GOLD]: " + c.toString() + " | " + getEntityHeadForConstituent(c, ta, "A").toString());
-
                         }
+
                     }
                 }
                 for (Constituent c : predictedMentions){

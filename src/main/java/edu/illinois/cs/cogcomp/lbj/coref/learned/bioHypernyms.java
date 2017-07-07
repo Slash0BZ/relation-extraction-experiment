@@ -54,14 +54,22 @@ public class bioHypernyms extends Classifier
 
     TextAnnotation ta = ex.getDoc().getTextAnnotation();
     if (ta.hasView(ViewNames.NER_CONLL)){
-        View nerView = ta.getView(ViewNames.NER_CONLL);
-        int position = ex.getWordNum();
-        List<Constituent> cons = nerView.getConstituentsCoveringSpan(position, position + 1);
-        if (cons.size() > 0){
-            __id = "NER:" + cons.get(0).getLabel();
-            __value = "true";
-            __result.addFeature(new DiscretePrimitiveStringFeature(this.containingPackage, this.name, __id, __value, valueIndexOf(__value), (short) 0));
-        }
+      View nerView = ta.getView(ViewNames.NER_CONLL);
+      int position = ex.getWordNum();
+      List<Constituent> cons = nerView.getConstituentsCoveringSpan(position, position + 1);
+      if (cons.size() > 0){
+        __id = "NER:" + cons.get(0).getLabel();
+        __value = "true";
+        __result.addFeature(new DiscretePrimitiveStringFeature(this.containingPackage, this.name, __id, __value, valueIndexOf(__value), (short) 0));
+        __id = "NERIDX:" + cons.get(0).getLabel() + (position - cons.get(0).getStartSpan());
+        __value = "true";
+        __result.addFeature(new DiscretePrimitiveStringFeature(this.containingPackage, this.name, __id, __value, valueIndexOf(__value), (short) 0));
+      }
+      else{
+        __id = "NER_NULL";
+        __value = "true";
+        __result.addFeature(new DiscretePrimitiveStringFeature(this.containingPackage, this.name, __id, __value, valueIndexOf(__value), (short) 0));
+      }
     }
     return __result;
   }

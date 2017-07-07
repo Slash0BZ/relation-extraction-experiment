@@ -1029,4 +1029,9 @@ public class RelationFeatureExtractor {
         }
         return "FALSE";
     }
+
+    public List<String> getGazFeature(Relation r){
+        List<String> ret_features = new ArrayList<>();
+        return ret_features;
+    }
 }
