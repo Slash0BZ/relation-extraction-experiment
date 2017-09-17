@@ -131,14 +131,24 @@ public class ACEReader extends AnnotationReader<TextAnnotation> {
     /**
      * Helper function to create a head constituent from an extent constituent.
      */
-    private static Constituent getEntityHeadForConstituent(Constituent extentConstituent,
-                                                           TextAnnotation textAnnotation,
-                                                           String viewName) {
+    public static Constituent getEntityHeadForConstituent(Constituent extentConstituent,
+                                                          TextAnnotation textAnnotation,
+                                                          String viewName) {
+        if (extentConstituent.getAttribute("EntityHeadStartCharOffset") == null ||
+                extentConstituent.getAttribute("EntityHeadEndCharOffset") == null){
+            return null;
+        }
+        if (extentConstituent.getAttribute("EntityHeadStartCharOffset") == "HEAD" ||
+                extentConstituent.getAttribute("EntityHeadEndCharOffset") == "HEAD"){
+            return extentConstituent;
+        }
         int startCharOffset =
                 Integer.parseInt(extentConstituent
                         .getAttribute(ACEReader.EntityHeadStartCharOffset));
+
         int endCharOffset =
                 Integer.parseInt(extentConstituent.getAttribute(ACEReader.EntityHeadEndCharOffset)) - 1;
+
         int startToken = textAnnotation.getTokenIdFromCharacterOffset(startCharOffset);
         int endToken = textAnnotation.getTokenIdFromCharacterOffset(endCharOffset);
 
@@ -150,10 +160,8 @@ public class ACEReader extends AnnotationReader<TextAnnotation> {
             for (String attributeKey : extentConstituent.getAttributeKeys()) {
                 cons.addAttribute(attributeKey, extentConstituent.getAttribute(attributeKey));
             }
-
             return cons;
         }
-
         return null;
     }
 
@@ -241,13 +249,16 @@ public class ACEReader extends AnnotationReader<TextAnnotation> {
             i = i + curTokenLength - 1;
         }
         resText = new String(resTextChar);
-
-        ta =
-                taBuilder.createTextAnnotation(
-                        this.corpusId,
-                        textId,
-                        resText);
-
+        String fileNameTransformed = fileName.replace(File.separator, "/");
+        String[] fileNameGroup = fileNameTransformed.split("/");
+        String groupName = fileNameGroup[fileNameGroup.length - 2];
+        if (groupName.equals("bn")) {
+            ta =
+                    taBuilder.createTextAnnotation(
+                            this.corpusId,
+                            textId,
+                            resText);
+        }
         // Add metadata attributes to the generated Text Annotation.
         if (doc.metadata != null) {
             for (String metadataKey : doc.metadata.keySet()) {

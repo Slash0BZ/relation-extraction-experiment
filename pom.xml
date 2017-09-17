@@ -18,114 +18,48 @@
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>LBJava</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>edu.illinois.cs.cogcomp</groupId>
-                    <artifactId>Illinois-Combined-Coref</artifactId>
-                </exclusion>
-            </exclusions>
             <version>1.2.26</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-corpusreaders</artifactId>
-            <version>3.1.20</version>
+            <version>3.1.32</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-pos</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>edu.illinois.cs.cogcomp</groupId>
-                    <artifactId>Illinois-Combined-Coref</artifactId>
-                </exclusion>
-            </exclusions>
-            <version>3.1.20</version>
+            <version>3.1.32</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
-            <artifactId>illinois-external-annotators</artifactId>
-            <version>3.1.20</version>
+            <artifactId>stanford_3.3.1</artifactId>
+            <version>3.1.32</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.illinois.cs.cogcomp</groupId>
+            <artifactId>illinois-similarity</artifactId>
+            <version>3.1.32</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-edison</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>edu.illinois.cs.cogcomp</groupId>
-                    <artifactId>Illinois-Combined-Coref</artifactId>
-                </exclusion>
-            </exclusions>
-            <version>3.0.107</version>
+            <version>3.1.32</version>
         </dependency>
         <dependency>
             <groupId>edu.illinois.cs.cogcomp</groupId>
             <artifactId>illinois-nlp-pipeline</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>edu.illinois.cs.cogcomp</groupId>
-                    <artifactId>Illinois-Combined-Coref</artifactId>
-                </exclusion>
-            </exclusions>
-            <version>3.1.20</version>
+            <version>3.1.32</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.illinois.cs.cogcomp</groupId>
+            <artifactId>illinois-ner</artifactId>
+            <version>3.1.32</version>
         </dependency>
         <dependency>
             <groupId>org.cogcomp</groupId>
             <artifactId>cogcomp-datastore</artifactId>
-            <version>1.9.7</version>
+            <version>1.9.10</version>
         </dependency>
-        <dependency>
-            <groupId>edu.illinois.cs.cogcomp</groupId>
-            <artifactId>Illinois-Combined-Coref</artifactId>
-            <version>1.0.4</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.extjwnl</groupId>
-            <artifactId>extjwnl</artifactId>
-            <version>1.9.2</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.extjwnl</groupId>
-            <artifactId>extjwnl-data-wn30</artifactId>
-            <version>1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.beust</groupId>
-            <artifactId>jcommander</artifactId>
-            <version>1.58</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mapdb</groupId>
-            <artifactId>mapdb</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>edu.illinois.cs.cogcomp</groupId>
-                    <artifactId>Illinois-Combined-Coref</artifactId>
-                </exclusion>
-            </exclusions>
-            <version>3.0.2</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.5</version>
-        </dependency>
-        <dependency>
-            <groupId>com.rabbitmq</groupId>
-            <artifactId>amqp-client</artifactId>
-            <version>4.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>1.17</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sparkjava</groupId>
-            <artifactId>spark-core</artifactId>
-            <version>2.5.4</version>
-        </dependency>
-
     </dependencies>
 
     <repositories>

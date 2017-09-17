@@ -8,11 +8,12 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Sentence;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
-import edu.illinois.cs.cogcomp.lbj.coref.main.AllTest;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
+import org.cogcomp.md.MentionAnnotator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -73,23 +74,14 @@ public class RelationAnnotator extends Annotator {
 
     @Override
     public void addView(TextAnnotation record) throws AnnotatorException {
-        View mentionView = new SpanLabelView("RELATION_EXTRACTION_MENTIONS", RelationAnnotator.class.getCanonicalName(), record, 1.0f, true);
-        List<Constituent> predictedCons = null;
         try {
-            predictedCons = AllTest.MentionTest(record);
+            MentionAnnotator mentionAnnotator = new MentionAnnotator("ACE_TYPE");
+            mentionAnnotator.addView(record);
         }
         catch (Exception e){
             e.printStackTrace();
         }
-        entity_type_classifier etc = new entity_type_classifier("models/entity_type_classifier_fold_0.lc", "models/entity_type_classifier_fold_0.lex");
-        entity_subtype_classifier esc = new entity_subtype_classifier("models/entity_subtype_classifier_fold_0.lc", "models/entity_subtype_classifier_fold_0.lex");
-        for (Constituent c : predictedCons){
-            String entity_type = etc.discreteValue(c);
-            String entity_subtype = esc.discreteValue(c);
-            c.addAttribute("EntityType", entity_type);
-            c.addAttribute("EntitySubtype", entity_subtype);
-            mentionView.addConstituent(c);
-        }
+        View mentionView = record.getView(ViewNames.MENTION);
         View relationView = new SpanLabelView("RELATION_EXTRACTION_RELATIONS", RelationAnnotator.class.getCanonicalName(), record, 1.0f, true);
         for (int i = 0; i < record.getNumberOfSentences(); i++){
             Sentence curSentence = record.getSentence(i);

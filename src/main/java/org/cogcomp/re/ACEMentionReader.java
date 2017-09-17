@@ -8,8 +8,6 @@ import edu.illinois.cs.cogcomp.lbjava.parse.Parser;
 import edu.illinois.cs.cogcomp.pipeline.server.ServerClientAnnotator;
 import edu.illinois.cs.cogcomp.edison.annotators.*;
 import edu.illinois.cs.cogcomp.pos.POSAnnotator;
-import edu.illinois.cs.cogcomp.wsd.Entry;
-import edu.illinois.cs.cogcomp.wsd.annotators.WordSenseAnnotator;
 
 import java.util.*;
 import java.lang.*;
@@ -113,14 +111,12 @@ public class ACEMentionReader implements Parser
             BrownClusterViewGenerator bc_annotator = new BrownClusterViewGenerator("c1000", BrownClusterViewGenerator.file1000);
             ChunkerAnnotator chunker  = new ChunkerAnnotator(true);
             chunker.initialize(new ChunkerConfigurator().getDefaultConfig());
-            WordSenseAnnotator wsa = Entry.getDefaultWSD();
             Map<Integer, Integer> distMap = new HashMap<Integer, Integer>();
             for (TextAnnotation ta : reader) {
                 ta.addView(pos_annotator);
                 chunker.addView(ta);
                 bc_annotator.addView(ta);
                 //annotator.addView(ta);
-                wsa.addView(ta);
                 View entityView = ta.getView(ViewNames.MENTION_ACE);
                 relations.addAll(entityView.getRelations());
                 entities.addAll(entityView.getConstituents());

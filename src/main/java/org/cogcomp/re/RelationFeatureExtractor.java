@@ -1,6 +1,4 @@
 package org.cogcomp.re;
-import com.sun.org.apache.regexp.internal.RE;
-import edu.illinois.cs.cogcomp.edison.features.factory.DependencyPath;
 import edu.illinois.cs.cogcomp.edison.features.helpers.PathFeatureHelper;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 
@@ -8,10 +6,7 @@ import java.util.*;
 import java.lang.*;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
-import edu.illinois.cs.cogcomp.core.datastructures.trees.*;
-import edu.illinois.cs.cogcomp.edison.features.*;
-import edu.illinois.cs.cogcomp.edison.annotators.*;
-import edu.illinois.cs.cogcomp.pipeline.server.ServerClientAnnotator;
+import org.cogcomp.md.MentionAnnotator;
 
 
 /*
@@ -32,6 +27,9 @@ public class RelationFeatureExtractor {
                                                            String viewName) {
         if (extentConstituent.getAttribute("IsPredicted") != null){
             return extentConstituent;
+        }
+        if (extentConstituent.getAttribute("EntityHeadStartSpan") != null){
+            return MentionAnnotator.getHeadConstituent(extentConstituent, viewName);
         }
         int startCharOffset =
                 Integer.parseInt(extentConstituent

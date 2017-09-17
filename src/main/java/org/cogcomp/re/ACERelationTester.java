@@ -530,7 +530,62 @@ public class ACERelationTester {
         System.out.println("F1: " + f);
         //delete_files();
     }
+
+    public static void test_ace_predicted(){
+        int labeled = 0;
+        int predicted = 0;
+        int correct = 0;
+
+        fine_relation_label output = new fine_relation_label();
+        Parser train_parser = new ACEMentionReader("data/all", "relation_full_bi_test");
+        relation_classifier classifier = new relation_classifier();
+        classifier.setLexiconLocation("models/predicted_relation_classifier_all.lex");
+        BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
+        Learner preExtractLearner = trainer.preExtract("models/predicted_relation_classifier_all.ex", true, Lexicon.CountPolicy.none);
+        preExtractLearner.saveLexicon();
+        Lexicon lexicon = preExtractLearner.getLexicon();
+        classifier.setLexicon(lexicon);
+        int examples = 0;
+        for (Object example = train_parser.next(); example != null; example = train_parser.next()){
+            examples ++;
+        }
+        train_parser.reset();
+        classifier.initialize(examples, preExtractLearner.getLexicon().size());
+        for (Object example = train_parser.next(); example != null; example = train_parser.next()){
+            classifier.learn(example);
+        }
+        classifier.doneWithRound();
+        classifier.doneLearning();
+        ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
+        Parser parser_full = new ACEMentionReader("data/partition_with_dev/dev", "relation_full_bi_test");
+        for (Object example = parser_full.next(); example != null; example = parser_full.next()){
+            String predicted_label = constrainedClassifier.discreteValue(example);
+            if (predicted_label.equals("NOT_RELATED") == false){
+                predicted ++;
+            }
+            String gold_label = output.discreteValue(example);
+            if (gold_label.equals("NOT_RELATED") == false){
+                labeled ++;
+            }
+            if (predicted_label.equals(gold_label) && !gold_label.equals("NOT_RELATED")){
+                correct ++;
+            }
+        }
+        classifier.forget();
+        parser_full.reset();
+        train_parser.reset();
+
+        System.out.println("Total Labeled Mention ACE: " + labeled);
+        System.out.println("Total Predicted Mention ACE: " + predicted);
+        System.out.println("Total Correct Mention ACE: " + correct);
+        double p = (double)correct / (double)predicted;
+        double r = (double)correct / (double)labeled;
+        double f = 2 * p * r / (p + r);
+        System.out.println("Precision: " + p * 100.0);
+        System.out.println("Recall: " + r * 100.0);
+        System.out.println("F1: " + f * 100.0);
+    }
     public static void main(String[] args){
-        test_constraint();
+        test_ace_predicted();
     }
 }
