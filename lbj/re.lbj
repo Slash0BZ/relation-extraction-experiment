@@ -5,6 +5,8 @@ import java.lang.*;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.infer.ilp.OJalgoHook;
+import edu.illinois.cs.cogcomp.core.datastructures.Pair;
+import org.cogcomp.md.BIOFeatureExtractor;
 
 //Returns the entity type of a constituent
 discrete entity_label(Constituent c) <- {
@@ -138,10 +140,121 @@ discrete{"TRUE", "FALSE"} coref_tag(Relation r) <-{
     RelationFeatureExtractor rfe = new RelationFeatureExtractor();
     return rfe.getCorefTag(r);
 }
+/*
+discrete% POS_Features (Relation r) <- {
+    List features = BIOFeatureExtractor.getPOSFeatures(r.getSource());
+    for (int i = 0; i < features.size(); i++){
+        Pair p = (Pair)features.get(i);
+        int idx = (Integer)p.getFirst();
+        String val = (String)p.getSecond();
+        sense "source" + idx : val;
+    }
+    features = BIOFeatureExtractor.getPOSFeatures(r.getTarget());
+    for (int i = 0; i < features.size(); i++){
+        Pair p = (Pair)features.get(i);
+        int idx = (Integer)p.getFirst();
+        String val = (String)p.getSecond();
+        sense "target" + idx : val;
+    }
+}
+*/
+discrete% BrownClusterPaths (Relation r) <- {
+    View tView = r.getSource().getTextAnnotation().getView("RE_ANNOTATED");
+    Constituent source_head = RelationFeatureExtractor.getEntityHeadForConstituent(r.getSource(), r.getSource().getTextAnnotation(), "A");
+    for (int i = source_head.getStartSpan(); i < source_head.getEndSpan(); i++){
+        List ret = RelationFeatureExtractor.getBrownClusterPathsSingle(tView.getConstituentsCoveringToken(i).get(0));
+        for (int j = 0; j < ret.size(); j++){
+            sense "source_" + (i - source_head.getStartSpan()) : (String)ret.get(j);
+        }
+    }
+    Constituent target_head = RelationFeatureExtractor.getEntityHeadForConstituent(r.getSource(), r.getSource().getTextAnnotation(), "A");
+    for (int i = target_head.getStartSpan(); i < target_head.getEndSpan(); i++){
+        List ret = RelationFeatureExtractor.getBrownClusterPathsSingle(tView.getConstituentsCoveringToken(i).get(0));
+        for (int j = 0; j < ret.size(); j++){
+            sense "target_" + (i - target_head.getStartSpan()) : (String)ret.get(j);
+        }
+    }
+}
+
+discrete% wordNetTag (Relation r) <- {
+    Constituent source_head = RelationFeatureExtractor.getEntityHeadForConstituent(r.getSource(), r.getSource().getTextAnnotation(), "A");
+    for (int i = source_head.getStartSpan(); i < source_head.getEndSpan(); i++){
+        Constituent test = r.getSource().getTextAnnotation().getView("RE_ANNOTATED").getConstituentsCoveringToken(i).get(0);
+        String combined = test.getAttribute("WORDNETTAG");
+        String[] group = combined.split(",");
+        for (int j = 0; j < group.length; j++){
+            String s = group[j];
+            if (!s.equals("")){
+                sense "source" : (s.split("\\."))[1];
+            }
+        }
+    }
+    Constituent target_head = RelationFeatureExtractor.getEntityHeadForConstituent(r.getTarget(), r.getTarget().getTextAnnotation(), "A");
+    for (int i = target_head.getStartSpan(); i < target_head.getEndSpan(); i++){
+        Constituent test = r.getTarget().getTextAnnotation().getView("RE_ANNOTATED").getConstituentsCoveringToken(i).get(0);
+        String combined = test.getAttribute("WORDNETTAG");
+        String[] group = combined.split(",");
+        for (int j = 0; j < group.length; j++){
+            String s= group[j];
+            if (!s.equals("")){
+                sense "target" : (s.split("\\."))[1];
+            }
+        }
+    }
+}
+
+discrete% wordNetHym (Relation r) <- {
+    Constituent source_head = RelationFeatureExtractor.getEntityHeadForConstituent(r.getSource(), r.getSource().getTextAnnotation(), "A");
+    for (int i = source_head.getStartSpan(); i < source_head.getEndSpan(); i++){
+        Constituent test = r.getSource().getTextAnnotation().getView("RE_ANNOTATED").getConstituentsCoveringToken(i).get(0);
+        String combined = test.getAttribute("WORDNETHYM");
+        String[] group = combined.split(",");
+        for (int j = 0; j < group.length; j++){
+            String s = group[j];
+            if (!s.equals("")){
+                sense "source" : s;
+            }
+        }
+    }
+    Constituent target_head = RelationFeatureExtractor.getEntityHeadForConstituent(r.getTarget(), r.getTarget().getTextAnnotation(), "A");
+    for (int i = target_head.getStartSpan(); i < target_head.getEndSpan(); i++){
+        Constituent test = r.getTarget().getTextAnnotation().getView("RE_ANNOTATED").getConstituentsCoveringToken(i).get(0);
+        String combined = test.getAttribute("WORDNETHYM");
+        String[] group = combined.split(",");
+        for (int j = 0; j < group.length; j++){
+            String s= group[j];
+            if (!s.equals("")){
+                sense "target" : s;
+            }
+        }
+    }
+}
+
+discrete% gazetteerSource (Relation r) <- {
+    String s = r.getSource().getAttribute("GAZ");
+    for (int i = 0; i < s.split(",").length; i++){
+        String feature = s.split(",")[i];
+        sense feature;
+    }
+}
+
+discrete% gazetteerTarget (Relation r) <- {
+    String t = r.getTarget().getAttribute("GAZ");
+    for (int i = 0; i < t.split(",").length; i++){
+        String feature = t.split(",")[i];
+        sense feature;
+    }
+}
+
+discrete% gazetteerFeatures (Relation r) <-
+    gazetteerSource && gazetteerTarget
+
+discrete% baseFeatures (Relation r) <-
+    lexical_features, collocations_features, structual_features, mention_features, template_features
 
 discrete relation_classifier(Relation r) <-
 learn fine_relation_label
-    using lexical_features, collocations_features, structual_features, mention_features, template_features
+    using baseFeatures
     from new ACEMentionReader("data/onedoc", "relation_full_bi_test")
     1 rounds
     with SupportVectorMachine{

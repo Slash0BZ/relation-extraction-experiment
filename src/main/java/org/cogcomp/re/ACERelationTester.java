@@ -534,7 +534,9 @@ public class ACERelationTester {
     public static void test_ace_predicted(){
         int labeled = 0;
         int predicted = 0;
+        int predicted_predicted = 0;
         int correct = 0;
+        int predicted_correct = 0;
 
         fine_relation_label output = new fine_relation_label();
         Parser train_parser = new ACEMentionReader("data/all", "relation_full_bi_test");
@@ -557,30 +559,54 @@ public class ACERelationTester {
         classifier.doneWithRound();
         classifier.doneLearning();
         ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
-        Parser parser_full = new ACEMentionReader("data/partition_with_dev/dev", "relation_full_bi_test");
-        for (Object example = parser_full.next(); example != null; example = parser_full.next()){
+        Parser parser_full_gold = new ACEMentionReader("data/partition_with_dev/dev", "relation_full_bi_test");
+        for (Object example = parser_full_gold.next(); example != null; example = parser_full_gold.next()){
             String predicted_label = constrainedClassifier.discreteValue(example);
-            if (predicted_label.equals("NOT_RELATED") == false){
-                predicted ++;
-            }
             String gold_label = output.discreteValue(example);
             if (gold_label.equals("NOT_RELATED") == false){
                 labeled ++;
             }
-            if (predicted_label.equals(gold_label) && !gold_label.equals("NOT_RELATED")){
+            if (predicted_label.equals("NOT_RELATED") == false){
+                predicted ++;
+            }
+            if (getCoarseType(predicted_label).equals(getCoarseType(gold_label)) && !gold_label.equals("NOT_RELATED")){
                 correct ++;
             }
         }
+        /*
+        Parser parser_full = new PredictedMentionReader("data/partition_with_dev/dev");
+        for (Object example = parser_full.next(); example != null; example = parser_full.next()){
+            String gold_label = output.discreteValue(example);
+            String predicted_label = constrainedClassifier.discreteValue(example);
+            if (predicted_label.equals("NOT_RELATED") == false){
+                predicted_predicted ++;
+            }
+            if (predicted_label.equals(gold_label) && !gold_label.equals("NOT_RELATED")){
+                predicted_correct ++;
+            }
+        }
+        */
         classifier.forget();
-        parser_full.reset();
+        //parser_full.reset();
         train_parser.reset();
-
+        System.out.println("====Gold Mention Results====");
         System.out.println("Total Labeled Mention ACE: " + labeled);
         System.out.println("Total Predicted Mention ACE: " + predicted);
         System.out.println("Total Correct Mention ACE: " + correct);
         double p = (double)correct / (double)predicted;
         double r = (double)correct / (double)labeled;
         double f = 2 * p * r / (p + r);
+        System.out.println("Precision: " + p * 100.0);
+        System.out.println("Recall: " + r * 100.0);
+        System.out.println("F1: " + f * 100.0);
+
+        System.out.println("\n====Predicted Mention Results====");
+        System.out.println("Total Labeled Mention ACE: " + labeled);
+        System.out.println("Total Predicted Mention ACE: " + predicted_predicted);
+        System.out.println("Total Correct Mention ACE: " + predicted_correct);
+        p = (double)predicted_correct / (double)predicted_predicted;
+        r = (double)predicted_correct / (double)labeled;
+        f = 2 * p * r / (p + r);
         System.out.println("Precision: " + p * 100.0);
         System.out.println("Recall: " + r * 100.0);
         System.out.println("F1: " + f * 100.0);

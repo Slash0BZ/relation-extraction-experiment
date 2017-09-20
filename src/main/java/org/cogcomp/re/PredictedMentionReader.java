@@ -52,9 +52,9 @@ public class PredictedMentionReader implements Parser{
             MentionAnnotator mentionAnnotator = new MentionAnnotator("ACE_TYPE");
             for (TextAnnotation ta : aceReader){
                 ta.addView(pos_annotator);
-                chunker.addView(ta);
+                //chunker.addView(ta);
                 bc_annotator.addView(ta);
-                co.addView(ta);
+                //co.addView(ta);
                 mentionAnnotator.addView(ta);
 
                 View goldView = ta.getView(ViewNames.MENTION_ACE);

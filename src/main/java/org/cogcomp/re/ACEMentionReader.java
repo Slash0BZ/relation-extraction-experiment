@@ -1,6 +1,12 @@
 package org.cogcomp.re;
 import edu.illinois.cs.cogcomp.chunker.main.ChunkerAnnotator;
 import edu.illinois.cs.cogcomp.chunker.main.ChunkerConfigurator;
+import edu.illinois.cs.cogcomp.core.resources.ResourceConfigurator;
+import edu.illinois.cs.cogcomp.edison.utilities.WordNetManager;
+import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.BrownClusters;
+import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.FlatGazetteers;
+import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.Gazetteers;
+import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.GazetteersFactory;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
@@ -8,7 +14,10 @@ import edu.illinois.cs.cogcomp.lbjava.parse.Parser;
 import edu.illinois.cs.cogcomp.pipeline.server.ServerClientAnnotator;
 import edu.illinois.cs.cogcomp.edison.annotators.*;
 import edu.illinois.cs.cogcomp.pos.POSAnnotator;
+import org.cogcomp.Datastore;
+import org.cogcomp.md.BIOFeatureExtractor;
 
+import java.io.File;
 import java.util.*;
 import java.lang.*;
 
@@ -112,12 +121,46 @@ public class ACEMentionReader implements Parser
             ChunkerAnnotator chunker  = new ChunkerAnnotator(true);
             chunker.initialize(new ChunkerConfigurator().getDefaultConfig());
             Map<Integer, Integer> distMap = new HashMap<Integer, Integer>();
+            Datastore ds = new Datastore(new ResourceConfigurator().getDefaultConfig());
+            File gazetteersResource = ds.getDirectory("org.cogcomp.gazetteers", "gazetteers", 1.3, false);
+            GazetteersFactory.init(5, gazetteersResource.getPath() + File.separator + "gazetteers", true);
+            Vector<String> bcs = new Vector<>();
+            bcs.add("brown-clusters" + File.separator + "brown-english-wikitext.case-intact.txt-c1000-freq10-v3.txt");
+            bcs.add("brown-clusters" + File.separator + "brownBllipClusters");
+            bcs.add("brown-clusters" + File.separator + "brown-rcv1.clean.tokenized-CoNLL03.txt-c1000-freq1.txt");
+            Vector<Integer> bcst = new Vector<>();
+            bcst.add(5);
+            bcst.add(5);
+            bcst.add(5);
+            Vector<Boolean> bcsl = new Vector<>();
+            bcsl.add(false);
+            bcsl.add(false);
+            bcsl.add(false);
+            BrownClusters.init(bcs, bcst, bcsl);
+            WordNetManager.loadConfigAsClasspathResource(true);
+            WordNetManager wordNet = WordNetManager.getInstance();
+            Gazetteers gazetteers = GazetteersFactory.get();
+            BrownClusters brownClusters = BrownClusters.get();
             for (TextAnnotation ta : reader) {
                 ta.addView(pos_annotator);
-                chunker.addView(ta);
-                bc_annotator.addView(ta);
+                //chunker.addView(ta);
+                //bc_annotator.addView(ta);
                 //annotator.addView(ta);
+
                 View entityView = ta.getView(ViewNames.MENTION_ACE);
+                View annotatedTokenView = new SpanLabelView("RE_ANNOTATED", ta);
+                for (Constituent co : ta.getView(ViewNames.TOKENS).getConstituents()){
+                    Constituent c = co.cloneForNewView("RE_ANNOTATED");
+                    for (String s : co.getAttributeKeys()){
+                        c.addAttribute(s, co.getAttribute(s));
+                    }
+                    //c.addAttribute("GAZ", ((FlatGazetteers)gazetteers).annotateConstituent(c, false));
+                    c.addAttribute("BC", brownClusters.getPrefixesCombined(c.toString()));
+                    c.addAttribute("WORDNETTAG", BIOFeatureExtractor.getWordNetTags(wordNet, c));
+                    c.addAttribute("WORDNETHYM", BIOFeatureExtractor.getWordNetHyms(wordNet, c));
+                    annotatedTokenView.addConstituent(c);
+                }
+                ta.addView("RE_ANNOTATED", annotatedTokenView);
                 relations.addAll(entityView.getRelations());
                 entities.addAll(entityView.getConstituents());
                 List<Relation> existRelations = entityView.getRelations();
@@ -129,18 +172,17 @@ public class ACEMentionReader implements Parser
                         for (int k = j + 1; k < cins.size(); k++){
                             Constituent firstArg = cins.get(j);
                             Constituent secondArg = cins.get(k);
+                            Constituent firstArgHead = RelationFeatureExtractor.getEntityHeadForConstituent(firstArg, firstArg.getTextAnnotation(), "A");
+                            Constituent secondArgHead = RelationFeatureExtractor.getEntityHeadForConstituent(secondArg, secondArg.getTextAnnotation(), "A");
+                            firstArg.addAttribute("GAZ", ((FlatGazetteers) gazetteers).annotatePhrase(firstArgHead));
+                            secondArg.addAttribute("GAZ", ((FlatGazetteers)gazetteers).annotatePhrase(secondArgHead));
+
                             boolean found_as_source = false;
                             boolean found_as_target = false;
                             for (Relation r : existRelations){
-                                /*
-                                if (r.getAttribute("RelationSubtype").equals("Artifact")){
-                                    System.out.println(r.getSource().getAttribute("EntityType"));
-                                    System.out.println(r.getTarget().getAttribute("EntityType"));
-                                    System.out.println();
-                                }
-                                */
-                                if (r.getSource() == firstArg && r.getTarget() == secondArg){
-                                    if (skipTypes(r.getAttribute("RelationSubtype"))) continue;
+                                //if (r.getSource() == firstArg && r.getTarget() == secondArg){
+                                if (r.getSource().getStartSpan() == firstArg.getStartSpan() && r.getSource().getEndSpan() == firstArg.getEndSpan()
+                                        && r.getTarget().getStartSpan() == secondArg.getStartSpan() && r.getTarget().getEndSpan() == secondArg.getEndSpan()){
                                     relations_full.add(r);
                                     Relation opdirNeg = new Relation("NOT_RELATED", secondArg, firstArg, 1.0f);
                                     opdirNeg.addAttribute("RelationType", "NOT_RELATED");
@@ -164,8 +206,9 @@ public class ACEMentionReader implements Parser
                                     relations_full_trim.add(opdir);
                                     break;
                                 }
-                                if (r.getTarget() == firstArg && r.getSource() == secondArg){
-                                    if (skipTypes(r.getAttribute("RelationSubtype"))) continue;
+                                //if (r.getTarget() == firstArg && r.getSource() == secondArg){
+                                if (r.getTarget().getStartSpan() == firstArg.getStartSpan() && r.getTarget().getEndSpan() == firstArg.getEndSpan()
+                                        && r.getSource().getStartSpan() == secondArg.getStartSpan() && r.getSource().getEndSpan() == secondArg.getEndSpan()){
                                     relations_full.add(r);
                                     Relation opdirNeg = new Relation("NOT_RELATED", firstArg, secondArg, 1.0f);
                                     opdirNeg.addAttribute("RelationType", "NOT_RELATED");
@@ -227,10 +270,21 @@ public class ACEMentionReader implements Parser
                                 else {
                                     distMap.put(dist_2, 1);
                                 }
+                                Constituent firstHead = getEntityHeadForConstituent(firstArg, firstArg.getTextAnnotation(), "A");
+                                Constituent secondHead = getEntityHeadForConstituent(secondArg, secondArg.getTextAnnotation(), "A");
+                                boolean more_than_two = false;
+                                if (firstHead.getStartSpan() < secondArg.getStartSpan()){
+                                    more_than_two = ta.getView(ViewNames.MENTION_ACE).getConstituentsCoveringSpan(firstHead.getEndSpan(), secondHead.getStartSpan() - 1).size() > 2;
+                                }
+                                else {
+                                    more_than_two = ta.getView(ViewNames.MENTION_ACE).getConstituentsCoveringSpan(secondHead.getEndSpan(), firstArgHead.getStartSpan() - 1).size() > 2;
+                                }
                                 relations_full.add(newRelation_1);
                                 relations_full.add(newRelation_2);
-                                relation_full_bi_test.add(newRelation_1);
-                                relation_full_bi_test.add(newRelation_2);
+                                if (!more_than_two) {
+                                    relation_full_bi_test.add(newRelation_1);
+                                    relation_full_bi_test.add(newRelation_2);
+                                }
                                 if (!RelationFeatureExtractor.isFourType(newRelation_1)) {
                                     relations_full_bi.add(newRelation_1);
                                 }

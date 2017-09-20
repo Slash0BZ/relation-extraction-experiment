@@ -1,4 +1,5 @@
 package org.cogcomp.re;
+import edu.illinois.cs.cogcomp.core.datastructures.Pair;
 import edu.illinois.cs.cogcomp.edison.features.helpers.PathFeatureHelper;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 
@@ -22,7 +23,7 @@ public class RelationFeatureExtractor {
      * This is the helper function to get entity head constituent for each mention
      * The returned constituent may contain multiple tokens
      */
-    private static Constituent getEntityHeadForConstituent(Constituent extentConstituent,
+    public static Constituent getEntityHeadForConstituent(Constituent extentConstituent,
                                                            TextAnnotation textAnnotation,
                                                            String viewName) {
         if (extentConstituent.getAttribute("IsPredicted") != null){
@@ -123,7 +124,6 @@ public class RelationFeatureExtractor {
         Constituent back_head = null;
         int SentenceStart = ta.getSentence(ta.getSentenceId(source)).getStartSpan();
         View posView = ta.getView(ViewNames.POS);
-        View spView = ta.getView(ViewNames.SHALLOW_PARSE);
         if (source_head.getStartSpan() > target_head.getStartSpan()){
             front = target;
             front_head = target_head;
@@ -205,7 +205,6 @@ public class RelationFeatureExtractor {
         Constituent front_head = null;
         Constituent back_head = null;
         View posView = ta.getView(ViewNames.POS);
-        View spView = ta.getView(ViewNames.SHALLOW_PARSE);
         if (source_head.getStartSpan() > target_head.getStartSpan()){
             front = target;
             front_head = target_head;
@@ -254,7 +253,6 @@ public class RelationFeatureExtractor {
         Constituent front_head = null;
         Constituent back_head = null;
         View posView = ta.getView(ViewNames.POS);
-        View spView = ta.getView(ViewNames.SHALLOW_PARSE);
         if (source_head.getStartSpan() > target_head.getStartSpan()){
             front = target;
             front_head = target_head;
@@ -305,20 +303,22 @@ public class RelationFeatureExtractor {
 
         List<String> ret_features = new ArrayList<String>();
         Constituent source = r.getSource();
+        Constituent sourceHead = getEntityHeadForConstituent(source, source.getTextAnnotation(), "A");
         TextAnnotation ta = source.getTextAnnotation();
         for (int i = source.getStartSpan(); i < source.getEndSpan(); i++){
-            ret_features.add(source.getTextAnnotation().getToken(i));
-            ret_features.add("BC_" + getBrownClusterLabel(ta, i));
+            ret_features.add(ta.getToken(i));
+            //ret_features.add("BC_" + getBrownClusterLabel(ta, i));
         }
         return ret_features;
     }
     public List<String> getLexicalFeaturePartB(Relation r){
         List<String> ret_features = new ArrayList<String>();
         Constituent target = r.getTarget();
+        Constituent targetHead = r.getTarget();
         TextAnnotation ta = target.getTextAnnotation();
         for (int i = target.getStartSpan(); i < target.getEndSpan(); i++){
-            ret_features.add(target.getTextAnnotation().getToken(i));
-            ret_features.add("BC_" + getBrownClusterLabel(ta, i));
+            ret_features.add(ta.getToken(i));
+            //ret_features.add("BC_" + getBrownClusterLabel(ta, i));
         }
         return ret_features;
     }
@@ -351,13 +351,13 @@ public class RelationFeatureExtractor {
         if (source_head.getEndSpan() < target_head.getStartSpan()){
             for (int i = source_head.getEndSpan(); i < target_head.getStartSpan(); i++) {
                 ret_features.add("bowbethead_" + source.getTextAnnotation().getToken(i));
-                ret_features.add("bowbetheadbc_" + getBrownClusterLabel(ta, i));
+                //ret_features.add("bowbetheadbc_" + getBrownClusterLabel(ta, i));
             }
         }
         if (target_head.getEndSpan() < source_head.getStartSpan()){
             for (int i = target_head.getEndSpan(); i < source_head.getStartSpan(); i++) {
                 ret_features.add("bowbethead_" + source.getTextAnnotation().getToken(i));
-                ret_features.add("bowbetheadbc_" + getBrownClusterLabel(ta, i));
+                //ret_features.add("bowbetheadbc_" + getBrownClusterLabel(ta, i));
             }
         }
         return ret_features;
@@ -861,7 +861,7 @@ public class RelationFeatureExtractor {
         Constituent sourceHead = getEntityHeadForConstituent(source, ta, "EntityHeads");
         Constituent targetHead = getEntityHeadForConstituent(target, ta, "EntityHeads");
         View posView = ta.getView(ViewNames.POS);
-        if (source.getStartSpan() - target.getEndSpan() == 1){
+        if (sourceHead.getStartSpan() - targetHead.getEndSpan() == 1){
             List<String> poss = posView.getLabelsCoveringToken(target.getEndSpan());
             if (poss.size() > 0) {
                 ret.add("pos_single_word_" + poss.get(0));
@@ -870,7 +870,7 @@ public class RelationFeatureExtractor {
                 ret.add("pos_single_word_no_pos");
             }
         }
-        else if (target.getStartSpan() - source.getEndSpan() == 1){
+        else if (targetHead.getStartSpan() - sourceHead.getEndSpan() == 1){
             List<String> poss = posView.getLabelsCoveringToken(source.getEndSpan());
             if (poss.size() > 0) {
                 ret.add("pos_single_word_" + poss.get(0));
@@ -1030,6 +1030,18 @@ public class RelationFeatureExtractor {
 
     public List<String> getGazFeature(Relation r){
         List<String> ret_features = new ArrayList<>();
+        return ret_features;
+    }
+
+    public static List<String> getBrownClusterPathsSingle(Constituent c){
+        List<String> ret_features = new ArrayList<>();
+        String[] features = c.getAttribute("BC").split(",");
+        for (String s : features) {
+            if (s == null){
+                continue;
+            }
+            ret_features.add(s);
+        }
         return ret_features;
     }
 }
