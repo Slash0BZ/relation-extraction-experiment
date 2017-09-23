@@ -176,7 +176,18 @@ public class ACEMentionReader implements Parser
                             Constituent secondArgHead = RelationFeatureExtractor.getEntityHeadForConstituent(secondArg, secondArg.getTextAnnotation(), "A");
                             firstArg.addAttribute("GAZ", ((FlatGazetteers) gazetteers).annotatePhrase(firstArgHead));
                             secondArg.addAttribute("GAZ", ((FlatGazetteers)gazetteers).annotatePhrase(secondArgHead));
-
+                            /*
+                            Sentence s = ta.getSentenceFromToken(firstArg.getStartSpan());
+                            System.out.println(s);
+                            for (Constituent c : ta.getView(ViewNames.MENTION_ACE).getConstituentsCoveringSpan(s.getStartSpan(), s.getEndSpan())){
+                                Constituent ch = RelationFeatureExtractor.getEntityHeadForConstituent(c, ta, "V");
+                                System.out.println(c.toString() + ": [GAZ]" + ((FlatGazetteers)gazetteers).annotatePhrase(ch));
+                            }
+                            for (Constituent c : ta.getView("RE_ANNOTATED").getConstituentsCoveringSpan(s.getStartSpan(), s.getEndSpan())) {
+                                System.out.println(c.toString() + ": [WORDNETTAG]" + c.getAttribute("WORDNETTAG") + " [WORDNETHYM]" + c.getAttribute("WORDNETHYM"));
+                            }
+                            System.out.println();
+                            */
                             boolean found_as_source = false;
                             boolean found_as_target = false;
                             for (Relation r : existRelations){
@@ -281,10 +292,10 @@ public class ACEMentionReader implements Parser
                                 }
                                 relations_full.add(newRelation_1);
                                 relations_full.add(newRelation_2);
-                                if (!more_than_two) {
+                                //if (!more_than_two) {
                                     relation_full_bi_test.add(newRelation_1);
                                     relation_full_bi_test.add(newRelation_2);
-                                }
+                                //}
                                 if (!RelationFeatureExtractor.isFourType(newRelation_1)) {
                                     relations_full_bi.add(newRelation_1);
                                 }

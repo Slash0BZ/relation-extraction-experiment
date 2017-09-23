@@ -127,7 +127,7 @@ public class ACERelationTester {
             binary_relation_classifier binary_classifier = new binary_relation_classifier("models/binary_classifier_fold_" + i + ".lc",
                     "models/binary_classifier_fold_" + i + ".lex");
             fine_relation_label output = new fine_relation_label();
-            Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi_test");
+            Parser train_parser = new ACEMentionReader("data/partition_with_dev/train/" + i, "relation_full_bi_test");
             relation_classifier classifier = new relation_classifier();
             classifier.setLexiconLocation("models/relation_classifier_fold_" + i + ".lex");
             BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
@@ -151,7 +151,7 @@ public class ACERelationTester {
             classifier.doneLearning();
 
             ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
-            Parser parser_full = new ACEMentionReader("data/partition/eval/" + i, "relation_full_bi_test");
+            Parser parser_full = new ACEMentionReader("data/partition_with_dev/eval/" + i, "relation_full_bi_test");
             for (Object example = parser_full.next(); example != null; example = parser_full.next()){
                 List<String> outputs = new ArrayList<String>();
                 String predicted_label = constrainedClassifier.discreteValue(example);
@@ -569,7 +569,7 @@ public class ACERelationTester {
             if (predicted_label.equals("NOT_RELATED") == false){
                 predicted ++;
             }
-            if (getCoarseType(predicted_label).equals(getCoarseType(gold_label)) && !gold_label.equals("NOT_RELATED")){
+            if (predicted_label.equals(gold_label) && !gold_label.equals("NOT_RELATED")){
                 correct ++;
             }
         }
@@ -612,6 +612,6 @@ public class ACERelationTester {
         System.out.println("F1: " + f * 100.0);
     }
     public static void main(String[] args){
-        test_ace_predicted();
+        test_constraint();
     }
 }
