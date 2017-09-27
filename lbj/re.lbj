@@ -250,6 +250,24 @@ discrete% gazetteerTarget (Relation r) <- {
     }
 }
 
+discrete% mdFeatures (Relation r) <- {
+    TextAnnotation ta = r.getSource().getTextAnnotation();
+    Constituent source = r.getSource();
+    if (ta.getView(ViewNames.MENTION).getConstituentsCoveringSpan(source.getStartSpan(), source.getEndSpan()).size() > 0){
+        sense "source" : ta.getView(ViewNames.MENTION).getConstituentsCoveringSpan(source.getStartSpan(), source.getEndSpan()).get(0).getAttribute("EntityType");
+    }
+    else{
+        sense "source" : "NO_MD_TAG";
+    }
+    Constituent target = r.getTarget();
+    if (ta.getView(ViewNames.MENTION).getConstituentsCoveringSpan(target.getStartSpan(), target.getEndSpan()).size() > 0){
+        sense "target" : ta.getView(ViewNames.MENTION).getConstituentsCoveringSpan(target.getStartSpan(), target.getEndSpan()).get(0).getAttribute("EntityType");
+    }
+    else{
+        sense "target" : "NO_MD_TAG";
+    }
+}
+
 discrete% gazetteerFeatures (Relation r) <-
     gazetteerSource, gazetteerTarget
 
@@ -268,6 +286,18 @@ learn fine_relation_label
 
     }
     testFrom new ACEMentionReader("data/partition/eval/0", "relation_full_bi_test")
+    progressOutput 20000
+end
+
+discrete SemEval_classifier (Relation r) <-
+learn fine_relation_label
+    using lexical_features, collocations_features, wordNetFeatures, gazetteerFeatures, mdFeatures
+    from new SemEvalMentionReader("", "")
+    1 rounds
+    with SupportVectorMachine{
+
+    }
+    testFrom new SemEvalMentionReader("", "")
     progressOutput 20000
 end
 

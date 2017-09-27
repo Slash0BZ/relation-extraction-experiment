@@ -32,6 +32,9 @@ public class RelationFeatureExtractor {
         if (extentConstituent.getAttribute("EntityHeadStartSpan") != null){
             return MentionAnnotator.getHeadConstituent(extentConstituent, viewName);
         }
+        if (!extentConstituent.hasAttribute(ACEReader.EntityHeadStartCharOffset)){
+            return extentConstituent;
+        }
         int startCharOffset =
                 Integer.parseInt(extentConstituent
                         .getAttribute(ACEReader.EntityHeadStartCharOffset));
@@ -48,7 +51,6 @@ public class RelationFeatureExtractor {
             for (String attributeKey : extentConstituent.getAttributeKeys()) {
                 cons.addAttribute(attributeKey, extentConstituent.getAttribute(attributeKey));
             }
-
             return cons;
         }
 

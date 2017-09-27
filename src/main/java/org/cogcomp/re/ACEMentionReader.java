@@ -7,6 +7,7 @@ import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.BrownClusters;
 import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.FlatGazetteers;
 import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.Gazetteers;
 import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.GazetteersFactory;
+import edu.illinois.cs.cogcomp.ner.NERAnnotator;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
@@ -16,6 +17,7 @@ import edu.illinois.cs.cogcomp.edison.annotators.*;
 import edu.illinois.cs.cogcomp.pos.POSAnnotator;
 import org.cogcomp.Datastore;
 import org.cogcomp.md.BIOFeatureExtractor;
+import org.cogcomp.md.MentionAnnotator;
 
 import java.io.File;
 import java.util.*;
@@ -141,11 +143,17 @@ public class ACEMentionReader implements Parser
             WordNetManager wordNet = WordNetManager.getInstance();
             Gazetteers gazetteers = GazetteersFactory.get();
             BrownClusters brownClusters = BrownClusters.get();
+
+            MentionAnnotator mentionAnnotator = new MentionAnnotator("ACE_TYPE");
+            NERAnnotator nerAnnotator = new NERAnnotator(ViewNames.NER_CONLL);
+
             for (TextAnnotation ta : reader) {
                 ta.addView(pos_annotator);
                 //chunker.addView(ta);
                 //bc_annotator.addView(ta);
                 //annotator.addView(ta);
+                mentionAnnotator.addView(ta);
+                nerAnnotator.getView(ta);
 
                 View entityView = ta.getView(ViewNames.MENTION_ACE);
                 View annotatedTokenView = new SpanLabelView("RE_ANNOTATED", ta);
@@ -176,18 +184,7 @@ public class ACEMentionReader implements Parser
                             Constituent secondArgHead = RelationFeatureExtractor.getEntityHeadForConstituent(secondArg, secondArg.getTextAnnotation(), "A");
                             firstArg.addAttribute("GAZ", ((FlatGazetteers) gazetteers).annotatePhrase(firstArgHead));
                             secondArg.addAttribute("GAZ", ((FlatGazetteers)gazetteers).annotatePhrase(secondArgHead));
-                            /*
-                            Sentence s = ta.getSentenceFromToken(firstArg.getStartSpan());
-                            System.out.println(s);
-                            for (Constituent c : ta.getView(ViewNames.MENTION_ACE).getConstituentsCoveringSpan(s.getStartSpan(), s.getEndSpan())){
-                                Constituent ch = RelationFeatureExtractor.getEntityHeadForConstituent(c, ta, "V");
-                                System.out.println(c.toString() + ": [GAZ]" + ((FlatGazetteers)gazetteers).annotatePhrase(ch));
-                            }
-                            for (Constituent c : ta.getView("RE_ANNOTATED").getConstituentsCoveringSpan(s.getStartSpan(), s.getEndSpan())) {
-                                System.out.println(c.toString() + ": [WORDNETTAG]" + c.getAttribute("WORDNETTAG") + " [WORDNETHYM]" + c.getAttribute("WORDNETHYM"));
-                            }
-                            System.out.println();
-                            */
+
                             boolean found_as_source = false;
                             boolean found_as_target = false;
                             for (Relation r : existRelations){
