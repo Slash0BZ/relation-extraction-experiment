@@ -162,8 +162,6 @@ public class SemEvalMentionReader implements Parser {
             TextAnnotation ta = BasicTextAnnotationBuilder.createTextAnnotationFromTokens(tokens);
             try {
                 ta.addView(_posAnnotator);
-                _mentionAnnotator.addView(ta);
-                _nerAnnotator.getView(ta);
                 View annotatedTokenView = new SpanLabelView("RE_ANNOTATED", ta);
                 for (Constituent co : ta.getView(ViewNames.TOKENS).getConstituents()){
                     Constituent c = co.cloneForNewView("RE_ANNOTATED");

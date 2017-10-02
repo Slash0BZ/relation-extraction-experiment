@@ -783,9 +783,9 @@ public class RelationFeatureExtractor {
      * Notice: This function expects View DEPENDENCY_STANFORD
      * The feature "dep labels between m1 and m2" was commented due to performance issues
      */
-    public List<String> getDependencyFeature(Relation r){
-        List<String> ret = new ArrayList<String>();
-        TreeView parse = (TreeView) r.getSource().getTextAnnotation().getView(ViewNames.DEPENDENCY);
+    public static List<Pair<String, String>> getDependencyFeature(Relation r){
+        List<Pair<String, String>> ret = new ArrayList<>();
+        TreeView parse = (TreeView) r.getSource().getTextAnnotation().getView(ViewNames.DEPENDENCY_STANFORD);
         Constituent source = r.getSource();
         Constituent target = r.getTarget();
         Constituent source_head = getEntityHeadForConstituent(source, source.getTextAnnotation(), "EntityHeads");
@@ -798,24 +798,15 @@ public class RelationFeatureExtractor {
                 if (source_parsed_list.size() != 0 && target_parsed_list.size() != 0) {
                     Constituent source_parsed = parse.getConstituentsCoveringToken(source_head.getStartSpan()).get(0);
                     Constituent target_parsed = parse.getConstituentsCoveringToken(target_head.getStartSpan()).get(0);
-                    ret.add(PathFeatureHelper.getDependencyPathString(source_parsed, target_parsed, 100));
+                    List<Constituent> paths = PathFeatureHelper.getPathConstituents(source_parsed, target_parsed, 100);
+                    for (int i = 0; i < paths.size(); i++){
+                        ret.add(new Pair(Integer.toString(i), paths.get(i).toString()));
+                        ret.add(new Pair("tag_" + Integer.toString(i), paths.get(i).getLabel()));
+                    }
                 }
             }catch (Exception e){
-                ret.add("no_path");
+                e.printStackTrace();
             }
-        }
-        else{
-            ret.add("not_same_sentence");
-        }
-        try{
-            if (source_parsed_list.size() != 0 && target_parsed_list.size() != 0) {
-                Constituent source_parsed = parse.getConstituentsCoveringToken(source_head.getStartSpan()).get(0);
-                Constituent target_parsed = parse.getConstituentsCoveringToken(target_head.getStartSpan()).get(0);
-                ret.add("hw_" + source_head.toString() + "_" + parse.getParent(source_parsed).toString());
-                ret.add("hw_" + target_head.toString() + "_" + parse.getParent(target_parsed).toString());
-            }
-        }catch (Exception e){
-            ret.add("hw_parent_none");
         }
         return ret;
     }

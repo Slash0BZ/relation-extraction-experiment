@@ -12,9 +12,13 @@ import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.lbjava.parse.Parser;
+import edu.illinois.cs.cogcomp.pipeline.common.Stanford331Configurator;
+import edu.illinois.cs.cogcomp.pipeline.handlers.StanfordDepHandler;
 import edu.illinois.cs.cogcomp.pipeline.server.ServerClientAnnotator;
 import edu.illinois.cs.cogcomp.edison.annotators.*;
 import edu.illinois.cs.cogcomp.pos.POSAnnotator;
+import edu.stanford.nlp.pipeline.POSTaggerAnnotator;
+import edu.stanford.nlp.pipeline.ParserAnnotator;
 import org.cogcomp.Datastore;
 import org.cogcomp.md.BIOFeatureExtractor;
 import org.cogcomp.md.MentionAnnotator;
@@ -114,11 +118,6 @@ public class ACEMentionReader implements Parser
         try {
             ACEReader reader = new ACEReader(file, new String[]{"bn", "nw"}, false);
             POSAnnotator pos_annotator = new POSAnnotator();
-
-            ServerClientAnnotator annotator = new ServerClientAnnotator();
-            annotator.setUrl("http://localhost", "8080");
-            //annotator.setViews(ViewNames.DEPENDENCY, ViewNames.SHALLOW_PARSE);
-            annotator.setViews(ViewNames.SHALLOW_PARSE);
             BrownClusterViewGenerator bc_annotator = new BrownClusterViewGenerator("c1000", BrownClusterViewGenerator.file1000);
             ChunkerAnnotator chunker  = new ChunkerAnnotator(true);
             chunker.initialize(new ChunkerConfigurator().getDefaultConfig());
@@ -147,13 +146,25 @@ public class ACEMentionReader implements Parser
             MentionAnnotator mentionAnnotator = new MentionAnnotator("ACE_TYPE");
             NERAnnotator nerAnnotator = new NERAnnotator(ViewNames.NER_CONLL);
 
+            Properties stanfordProps = new Properties();
+            stanfordProps.put("annotators", "pos, parse");
+            stanfordProps.put("parse.originalDependencies", true);
+            stanfordProps.put("parse.maxlen", Stanford331Configurator.STFRD_MAX_SENTENCE_LENGTH);
+            stanfordProps.put("parse.maxtime", Stanford331Configurator.STFRD_TIME_PER_SENTENCE);
+            POSTaggerAnnotator posAnnotator = new POSTaggerAnnotator("pos", stanfordProps);
+            ParserAnnotator parseAnnotator = new ParserAnnotator("parse", stanfordProps);
+            StanfordDepHandler stanfordDepHandler = new StanfordDepHandler(posAnnotator, parseAnnotator);
+
             for (TextAnnotation ta : reader) {
+                if (ta.getId().equals("bn\\CNN_ENG_20030424_070008.15.apf.xml")){
+                    continue;
+                }
                 ta.addView(pos_annotator);
+                stanfordDepHandler.addView(ta);
                 //chunker.addView(ta);
                 //bc_annotator.addView(ta);
-                //annotator.addView(ta);
-                mentionAnnotator.addView(ta);
-                nerAnnotator.getView(ta);
+                //mentionAnnotator.addView(ta);
+                //nerAnnotator.getView(ta);
 
                 View entityView = ta.getView(ViewNames.MENTION_ACE);
                 View annotatedTokenView = new SpanLabelView("RE_ANNOTATED", ta);
@@ -162,7 +173,6 @@ public class ACEMentionReader implements Parser
                     for (String s : co.getAttributeKeys()){
                         c.addAttribute(s, co.getAttribute(s));
                     }
-                    //c.addAttribute("GAZ", ((FlatGazetteers)gazetteers).annotateConstituent(c, false));
                     c.addAttribute("BC", brownClusters.getPrefixesCombined(c.toString()));
                     c.addAttribute("WORDNETTAG", BIOFeatureExtractor.getWordNetTags(wordNet, c));
                     c.addAttribute("WORDNETHYM", BIOFeatureExtractor.getWordNetHyms(wordNet, c));

@@ -91,7 +91,8 @@ discrete% dependency_features(Relation r) <- {
     RelationFeatureExtractor rfe = new RelationFeatureExtractor();
     List features = rfe.getDependencyFeature(r);
     for (int i = 0; i < features.size(); i++){
-        sense features.get(i);
+        Pair p = (Pair)features.get(i);
+        sense (String)p.getFirst() : (String)p.getSecond();
     }
 }
 
@@ -254,17 +255,35 @@ discrete% mdFeatures (Relation r) <- {
     TextAnnotation ta = r.getSource().getTextAnnotation();
     Constituent source = r.getSource();
     if (ta.getView(ViewNames.MENTION).getConstituentsCoveringSpan(source.getStartSpan(), source.getEndSpan()).size() > 0){
-        sense "source" : ta.getView(ViewNames.MENTION).getConstituentsCoveringSpan(source.getStartSpan(), source.getEndSpan()).get(0).getAttribute("EntityType");
+        sense "source_md_" : ta.getView(ViewNames.MENTION).getConstituentsCoveringSpan(source.getStartSpan(), source.getEndSpan()).get(0).getAttribute("EntityType");
     }
     else{
-        sense "source" : "NO_MD_TAG";
+        sense "source_md_" : "NO_MD_TAG";
     }
     Constituent target = r.getTarget();
     if (ta.getView(ViewNames.MENTION).getConstituentsCoveringSpan(target.getStartSpan(), target.getEndSpan()).size() > 0){
-        sense "target" : ta.getView(ViewNames.MENTION).getConstituentsCoveringSpan(target.getStartSpan(), target.getEndSpan()).get(0).getAttribute("EntityType");
+        sense "target_md_" : ta.getView(ViewNames.MENTION).getConstituentsCoveringSpan(target.getStartSpan(), target.getEndSpan()).get(0).getAttribute("EntityType");
     }
     else{
-        sense "target" : "NO_MD_TAG";
+        sense "target_md_" : "NO_MD_TAG";
+    }
+}
+
+discrete% nerFeatures (Relation r) <- {
+    TextAnnotation ta = r.getSource().getTextAnnotation();
+    Constituent source = r.getSource();
+    if (ta.getView(ViewNames.NER_CONLL).getConstituentsCoveringSpan(source.getStartSpan(), source.getEndSpan()).size() > 0){
+        sense "source_ner_" : ta.getView(ViewNames.NER_CONLL).getConstituentsCoveringSpan(source.getStartSpan(), source.getEndSpan()).get(0).getLabel();
+    }
+    else{
+        sense "source_ner_" : "NO_NER_TAG";
+    }
+    Constituent target = r.getTarget();
+    if (ta.getView(ViewNames.NER_CONLL).getConstituentsCoveringSpan(target.getStartSpan(), target.getEndSpan()).size() > 0){
+        sense "target_ner_" : ta.getView(ViewNames.NER_CONLL).getConstituentsCoveringSpan(target.getStartSpan(), target.getEndSpan()).get(0).getLabel();
+    }
+    else{
+        sense "target_ner_" : "NO_NER_TAG";
     }
 }
 
@@ -279,7 +298,7 @@ discrete% baseFeatures (Relation r) <-
 
 discrete relation_classifier(Relation r) <-
 learn fine_relation_label
-    using baseFeatures, wordNetFeatures, gazetteerFeatures
+    using baseFeatures, wordNetFeatures, gazetteerFeatures, dependency_features
     from new ACEMentionReader("data/onedoc", "relation_full_bi_test")
     1 rounds
     with SupportVectorMachine{
@@ -291,7 +310,7 @@ end
 
 discrete SemEval_classifier (Relation r) <-
 learn fine_relation_label
-    using lexical_features, collocations_features, wordNetFeatures, gazetteerFeatures, mdFeatures
+    using lexical_features, collocations_features, wordNetFeatures, gazetteerFeatures, template_features
     from new SemEvalMentionReader("", "")
     1 rounds
     with SupportVectorMachine{

@@ -12,8 +12,12 @@ import edu.illinois.cs.cogcomp.lbjava.learn.Learner;
 import edu.illinois.cs.cogcomp.lbjava.learn.Lexicon;
 import edu.illinois.cs.cogcomp.lbjava.parse.Parser;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
+import edu.illinois.cs.cogcomp.pipeline.common.Stanford331Configurator;
+import edu.illinois.cs.cogcomp.pipeline.handlers.StanfordDepHandler;
 import edu.illinois.cs.cogcomp.pipeline.main.PipelineFactory;
 import edu.illinois.cs.cogcomp.pos.POSAnnotator;
+import edu.stanford.nlp.pipeline.POSTaggerAnnotator;
+import edu.stanford.nlp.pipeline.ParserAnnotator;
 import org.apache.xmlrpc.webserver.ServletWebServer;
 import org.cogcomp.md.MentionAnnotator;
 
@@ -111,7 +115,34 @@ public class ExperimentPrinter {
             */
         }
     }
+    public static void printDependency(){
+        try{
+            ACEReader aceReader = new ACEReader("data/all", false);
+            Properties stanfordProps = new Properties();
+            stanfordProps.put("annotators", "pos, parse");
+            stanfordProps.put("parse.originalDependencies", true);
+            stanfordProps.put("parse.maxlen", Stanford331Configurator.STFRD_MAX_SENTENCE_LENGTH);
+            stanfordProps.put("parse.maxtime", Stanford331Configurator.STFRD_TIME_PER_SENTENCE);
+            POSTaggerAnnotator posAnnotator = new POSTaggerAnnotator("pos", stanfordProps);
+            ParserAnnotator parseAnnotator = new ParserAnnotator("parse", stanfordProps);
+            StanfordDepHandler stanfordDepHandler = new StanfordDepHandler(posAnnotator, parseAnnotator);
+            for (TextAnnotation ta : aceReader){
+                System.out.println(ta.getId());
+                if (ta.getId().equals("bn\\CNN_ENG_20030424_070008.15.apf.xml")){
+                    continue;
+                }
+                stanfordDepHandler.addView(ta);
+                for (Relation r : ta.getView(ViewNames.MENTION_ACE).getRelations()){
+                    System.out.println(ta.getSentenceFromToken(r.getSource().getStartSpan()));
+                    System.out.println();
+                }
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
     public static void main(String[] args){
-        printACESentenceWithRelation();
+        printDependency();
     }
 }
