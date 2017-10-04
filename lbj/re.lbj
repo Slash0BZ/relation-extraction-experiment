@@ -287,6 +287,13 @@ discrete% nerFeatures (Relation r) <- {
     }
 }
 
+discrete% patternFeatures (Relation r) <- {
+    List fs = RelationFeatureExtractor.patternRecognition(r.getSource(), r.getTarget());
+    for (int i = 0; i < fs.size(); i++){
+        sense (String)fs.get(i);
+    }
+}
+
 discrete% gazetteerFeatures (Relation r) <-
     gazetteerSource, gazetteerTarget
 
@@ -298,7 +305,7 @@ discrete% baseFeatures (Relation r) <-
 
 discrete relation_classifier(Relation r) <-
 learn fine_relation_label
-    using baseFeatures, wordNetFeatures, gazetteerFeatures, dependency_features
+    using baseFeatures, wordNetFeatures, gazetteerFeatures, dependency_features, patternFeatures
     from new ACEMentionReader("data/onedoc", "relation_full_bi_test")
     1 rounds
     with SupportVectorMachine{

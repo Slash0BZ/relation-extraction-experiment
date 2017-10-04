@@ -802,6 +802,7 @@ public class RelationFeatureExtractor {
                     for (int i = 0; i < paths.size(); i++){
                         ret.add(new Pair(Integer.toString(i), paths.get(i).toString()));
                         ret.add(new Pair("tag_" + Integer.toString(i), paths.get(i).getLabel()));
+                        ret.add(new Pair("pos_tag_" + Integer.toString(i), source.getTextAnnotation().getView(ViewNames.POS).getConstituentsCoveringToken(paths.get(i).getStartSpan()).get(0).getLabel()));
                     }
                 }
             }catch (Exception e){
@@ -1036,5 +1037,58 @@ public class RelationFeatureExtractor {
             ret_features.add(s);
         }
         return ret_features;
+    }
+
+    public static List<String> patternRecognition(Constituent source, Constituent target){
+        List<String> ret = new ArrayList<>();
+        TextAnnotation ta = source.getTextAnnotation();
+        Constituent source_head = getEntityHeadForConstituent(source, ta, "TEST");
+        Constituent target_head = getEntityHeadForConstituent(target, ta, "TEST");
+        if (source_head.getStartSpan() == target_head.getStartSpan()){
+            ret.add("SAME_SOURCE_TARGET_EXCEPTION");
+            return ret;
+        }
+        if (source.getStartSpan() == target.getStartSpan()){
+            ret.add("SAME_SOURCE_TARGET_EXTENT_EXCEPTION");
+            return ret;
+        }
+        Constituent front = null;
+        Constituent back = null;
+        Constituent front_head = null;
+        Constituent back_head = null;
+        if (source_head.getStartSpan() > target_head.getStartSpan()){
+            front_head = target_head;
+            back_head = source_head;
+        }
+        else{
+            front_head = source_head;
+            back_head = target_head;
+        }
+        if (source.getStartSpan() > target.getStartSpan()){
+            front = target;
+            back = source;
+        }
+        else {
+            front = source;
+            back = target;
+        }
+
+        //Check if the two arguments forms formulaic structure
+        if (front.getEndSpan() < ta.getView(ViewNames.TOKENS).getEndSpan()) {
+            if (ta.getToken(front_head.getEndSpan()).contains(",") && back_head.getStartSpan() - front_head.getEndSpan() < 3
+                    || ta.getToken(front_head.getEndSpan()).contains(",") && ta.getToken(back_head.getStartSpan() - 1).contains(",")
+                    || ta.getToken(front.getEndSpan()).contains(",") && back.getStartSpan() - front.getEndSpan() < 3 && back.getStartSpan() > front.getEndSpan()
+                    || ta.getToken(front.getEndSpan()).contains(",") && ta.getToken(back.getStartSpan() - 1).contains(",") && back.getStartSpan() > front.getEndSpan()
+                    || back.getStartSpan() < front.getEndSpan() && ta.getToken(back.getStartSpan() - 1).equals(",")) {
+                if (back.getAttribute("EntityType").equals("LOC")
+                        || back.getAttribute("EntityType").equals("ORG")
+                        || back.getAttribute("EntityType").equals("GPE")) {
+                    ret.add("FORMULAIC");
+                }
+            }
+        }
+
+
+        return ret;
     }
 }

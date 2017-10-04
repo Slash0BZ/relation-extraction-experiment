@@ -142,7 +142,35 @@ public class ExperimentPrinter {
             e.printStackTrace();
         }
     }
+
+    public static void printPattern(){
+        try{
+            ACEReader aceReader = new ACEReader("data/all", false);
+            for (TextAnnotation ta : aceReader){
+                for (Relation r : ta.getView(ViewNames.MENTION_ACE).getRelations()){
+                    List<String> ret = RelationFeatureExtractor.patternRecognition(r.getSource(), r.getTarget());
+                    RelationFeatureExtractor.patternRecognition(r.getTarget(), r.getSource());
+                    Constituent source = r.getSource();
+                    Constituent target = r.getTarget();
+                    Constituent source_head = RelationFeatureExtractor.getEntityHeadForConstituent(source, ta, "TEST");
+                    Constituent target_head = RelationFeatureExtractor.getEntityHeadForConstituent(target, ta, "TEST");
+                    /*
+                    if (!ret.contains("FORMULAIC") && r.getAttribute("RelationMentionLexicalCondition").equals("Formulaic")){
+                        System.out.println(ta.getSentenceFromToken(source.getStartSpan()));
+                        System.out.println(source.toString() + " || " + target.toString());
+                        System.out.println(source_head.toString() + " || " + target_head.toString());
+                        System.out.println(source.getAttribute("EntityType") + " || " + target.getAttribute("EntityType"));
+                        System.out.println();
+                    }
+                    */
+                }
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
     public static void main(String[] args){
-        printDependency();
+        printPattern();
     }
 }
