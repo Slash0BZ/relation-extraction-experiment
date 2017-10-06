@@ -124,7 +124,8 @@ discrete% shallow_parse_features(Relation r) <- {
     RelationFeatureExtractor rfe = new RelationFeatureExtractor();
     List features = rfe.getShallowParseFeature(r);
     for (int i = 0; i < features.size(); i++){
-        sense features.get(i);
+        Pair f = (Pair)features.get(i);
+        sense (String)f.getFirst() : (String)f.getSecond();
     }
 }
 
@@ -305,7 +306,7 @@ discrete% baseFeatures (Relation r) <-
 
 discrete relation_classifier(Relation r) <-
 learn fine_relation_label
-    using baseFeatures, wordNetFeatures, gazetteerFeatures, dependency_features, patternFeatures
+    using baseFeatures, wordNetFeatures, gazetteerFeatures, dependency_features, patternFeatures, shallow_parse_features
     from new ACEMentionReader("data/onedoc", "relation_full_bi_test")
     1 rounds
     with SupportVectorMachine{

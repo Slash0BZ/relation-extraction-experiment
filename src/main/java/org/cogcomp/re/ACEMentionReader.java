@@ -161,7 +161,7 @@ public class ACEMentionReader implements Parser
                 }
                 ta.addView(pos_annotator);
                 stanfordDepHandler.addView(ta);
-                //chunker.addView(ta);
+                chunker.addView(ta);
                 //bc_annotator.addView(ta);
                 //mentionAnnotator.addView(ta);
                 //nerAnnotator.getView(ta);

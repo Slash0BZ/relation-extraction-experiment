@@ -1,5 +1,7 @@
 package org.cogcomp.re;
 
+import com.sun.org.apache.regexp.internal.RE;
+import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.lbjava.classify.Score;
 import edu.illinois.cs.cogcomp.lbjava.classify.ScoreSet;
 import edu.illinois.cs.cogcomp.lbjava.classify.TestDiscrete;
@@ -187,28 +189,11 @@ public class ACERelationTester {
                     //if (score_curtag + oppo_score_curtag < score_opptag + oppo_score_opptag){
                     if (score_curtag < oppo_score_opptag && oppo_score_opptag - score_curtag > 0.005){
                         predicted_label = ACEMentionReader.getOppoName(oppo_predicted_label);
-                        if (predicted_label.equals(gold_label) == false){
-                            for (String o : outputs){
-                                //System.out.println(o);
-                            }
-                        }
                     }
                 }
                 if (is_null(binary_classifier, example)){
-                    predicted_label = "NOT_RELATED";
-                    //continue;
-                }
-                ScoreSet scores = classifier.scores(example);
-                Score[] scoresArray = scores.toArray();
-                double score_curtag = 0.0;
-                for (Score score : scoresArray){
-                    if (score.value.equals(predicted_label)){
-                        score_curtag = score.score;
-                        break;
-                    }
-                }
-                if (score_curtag < 0.5){
                     //predicted_label = "NOT_RELATED";
+                    //continue;
                 }
                 if (predicted_label.equals("NOT_RELATED") == false){
                     if (pMap.containsKey(predicted_label)){
@@ -250,14 +235,36 @@ public class ACERelationTester {
                         null_total_correct++;
                     }
                 }
-                else{
-                    if (gold_label.equals("NOT_RELATED") == false){
-                        if (gold_label.equals("Family") || gold_label.equals("Geographical") || gold_label.equals("Employment")
-                                || gold_label.equals("Investor-Shareholder") || gold_label.equals("Near")) {
-
+                /*
+                if (!predicted_label.equals(gold_label) && !gold_label.equals("NOT_RELATED")){
+                    Constituent source = r.getSource();
+                    Constituent target = r.getTarget();
+                    TextAnnotation ta = source.getTextAnnotation();
+                    List<Constituent> source_coref = new ArrayList<>();
+                    List<Constituent> target_coref = new ArrayList<>();
+                    for (Constituent c : ta.getView(ViewNames.MENTION_ACE).getConstituents()){
+                        if (c.getAttribute("EntityID") != null){
+                            if (c.getAttribute("EntityID").equals(source.getAttribute("EntityID"))){
+                                source_coref.add(c);
+                            }
+                            if (c.getAttribute("EntityID").equals(target.getAttribute("EntityID"))){
+                                target_coref.add(c);
+                            }
                         }
                     }
+                    for (Constituent s : source_coref){
+                        for (Constituent t : target_coref){
+                            Relation corefR = new Relation("TEST", s, t, 1.0f);
+                            if (constrainedClassifier.discreteValue(corefR).equals(gold_label)) {
+                                System.out.println(ta.getSentenceFromToken(source.getStartSpan()));
+                                System.out.println("Gold: " + gold_label + " Predicted: " + predicted_label);
+                                System.out.println(s.toString() + " " + t.toString() + " " + constrainedClassifier.discreteValue(corefR));
+                            }
+                        }
+                    }
+                    System.out.println();
                 }
+                */
                 if (r.getAttribute("RelationSubtype").equals("NOT_RELATED")){
                     total_null_relation++;
                     if (RelationFeatureExtractor.isPremodifier(r)){
@@ -293,11 +300,6 @@ public class ACERelationTester {
                     }
                     if (RelationFeatureExtractor.isFourType(r)){
                         real_relation_all++;
-                    }
-                    else {
-                        TextAnnotation ta = r.getSource().getTextAnnotation();
-                        //outputs.add(ta.getSentence(ta.getSentenceId(r.getSource())).toString());
-                        //outputs.add(r.getSource().toString() + " | " + r.getTarget().toString() + " " + gold_label + " " + predicted_label);
                     }
                 }
             }
@@ -531,11 +533,75 @@ public class ACERelationTester {
         //delete_files();
     }
 
-    public static void test_ace_predicted(){
+    public static void test_ace_gold(){
         int labeled = 0;
         int predicted = 0;
-        int predicted_predicted = 0;
         int correct = 0;
+
+        fine_relation_label output = new fine_relation_label();
+        Parser train_parser = new ACEMentionReader("data/all", "relation_full_bi_test");
+        relation_classifier classifier = new relation_classifier();
+        classifier.setLexiconLocation("models/gold_relation_classifier_all.lex");
+        BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
+        Learner preExtractLearner = trainer.preExtract("models/gold_relation_classifier_all.ex", true, Lexicon.CountPolicy.none);
+        preExtractLearner.saveLexicon();
+        Lexicon lexicon = preExtractLearner.getLexicon();
+        classifier.setLexicon(lexicon);
+        int examples = 0;
+        for (Object example = train_parser.next(); example != null; example = train_parser.next()){
+            examples ++;
+        }
+        train_parser.reset();
+        classifier.initialize(examples, preExtractLearner.getLexicon().size());
+        for (Object example = train_parser.next(); example != null; example = train_parser.next()){
+            classifier.learn(example);
+        }
+        classifier.doneWithRound();
+        classifier.doneLearning();
+        ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
+
+        Parser parser_full_gold = new ACEMentionReader("data/partition_with_dev/dev", "relation_full_bi_test");
+        for (Object example = parser_full_gold.next(); example != null; example = parser_full_gold.next()){
+            String predicted_label = constrainedClassifier.discreteValue(example);
+            String gold_label = output.discreteValue(example);
+            if (gold_label.equals("NOT_RELATED") == false){
+                labeled ++;
+            }
+            if (predicted_label.equals("NOT_RELATED") == false){
+                predicted ++;
+            }
+            if (predicted_label.equals(gold_label) && !gold_label.equals("NOT_RELATED")){
+                correct ++;
+            }
+            if (!predicted_label.equals(gold_label) && !gold_label.equals("NOT_RELATED")){
+                Relation r = (Relation)example;
+                Constituent source = r.getSource();
+                Constituent target = r.getTarget();
+                TextAnnotation ta = source.getTextAnnotation();
+                Constituent sh = RelationFeatureExtractor.getEntityHeadForConstituent(source, ta, "A");
+                Constituent th = RelationFeatureExtractor.getEntityHeadForConstituent(target, ta, "B");
+                System.out.println(ta.getSentenceFromToken(source.getStartSpan()));
+                System.out.println(source.toString() + " || " + target.toString());
+                System.out.println(sh.toString() + " || " + th.toString());
+                System.out.println("Gold: " + gold_label + " Predicted: " + predicted_label);
+                System.out.println();
+            }
+        }
+        System.out.println("====Gold Mention Results====");
+        System.out.println("Total Labeled Mention ACE: " + labeled);
+        System.out.println("Total Predicted Mention ACE: " + predicted);
+        System.out.println("Total Correct Mention ACE: " + correct);
+        double p = (double)correct / (double)predicted;
+        double r = (double)correct / (double)labeled;
+        double f = 2 * p * r / (p + r);
+        System.out.println("Precision: " + p * 100.0);
+        System.out.println("Recall: " + r * 100.0);
+        System.out.println("F1: " + f * 100.0);
+    }
+
+    public static void test_ace_predicted(){
+        int labeled = 0;
+        int predicted_predicted = 0;
         int predicted_correct = 0;
 
         fine_relation_label output = new fine_relation_label();
@@ -559,21 +625,7 @@ public class ACERelationTester {
         classifier.doneWithRound();
         classifier.doneLearning();
         ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
-        Parser parser_full_gold = new ACEMentionReader("data/partition_with_dev/dev", "relation_full_bi_test");
-        for (Object example = parser_full_gold.next(); example != null; example = parser_full_gold.next()){
-            String predicted_label = constrainedClassifier.discreteValue(example);
-            String gold_label = output.discreteValue(example);
-            if (gold_label.equals("NOT_RELATED") == false){
-                labeled ++;
-            }
-            if (predicted_label.equals("NOT_RELATED") == false){
-                predicted ++;
-            }
-            if (predicted_label.equals(gold_label) && !gold_label.equals("NOT_RELATED")){
-                correct ++;
-            }
-        }
-        /*
+
         Parser parser_full = new PredictedMentionReader("data/partition_with_dev/dev");
         for (Object example = parser_full.next(); example != null; example = parser_full.next()){
             String gold_label = output.discreteValue(example);
@@ -585,28 +637,17 @@ public class ACERelationTester {
                 predicted_correct ++;
             }
         }
-        */
         classifier.forget();
-        //parser_full.reset();
+        parser_full.reset();
         train_parser.reset();
-        System.out.println("====Gold Mention Results====");
-        System.out.println("Total Labeled Mention ACE: " + labeled);
-        System.out.println("Total Predicted Mention ACE: " + predicted);
-        System.out.println("Total Correct Mention ACE: " + correct);
-        double p = (double)correct / (double)predicted;
-        double r = (double)correct / (double)labeled;
-        double f = 2 * p * r / (p + r);
-        System.out.println("Precision: " + p * 100.0);
-        System.out.println("Recall: " + r * 100.0);
-        System.out.println("F1: " + f * 100.0);
 
-        System.out.println("\n====Predicted Mention Results====");
+        System.out.println("====Predicted Mention Results====");
         System.out.println("Total Labeled Mention ACE: " + labeled);
         System.out.println("Total Predicted Mention ACE: " + predicted_predicted);
         System.out.println("Total Correct Mention ACE: " + predicted_correct);
-        p = (double)predicted_correct / (double)predicted_predicted;
-        r = (double)predicted_correct / (double)labeled;
-        f = 2 * p * r / (p + r);
+        double p = (double)predicted_correct / (double)predicted_predicted;
+        double r = (double)predicted_correct / (double)labeled;
+        double f = 2 * p * r / (p + r);
         System.out.println("Precision: " + p * 100.0);
         System.out.println("Recall: " + r * 100.0);
         System.out.println("F1: " + f * 100.0);

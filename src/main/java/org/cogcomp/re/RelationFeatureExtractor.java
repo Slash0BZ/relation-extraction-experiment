@@ -749,11 +749,13 @@ public class RelationFeatureExtractor {
         String target_m_lvl = target.getAttribute("EntityMentionType");
         String source_main_type = source.getAttribute("EntityType");
         String target_main_type = target.getAttribute("EntityType");
-        //String source_sub_type = source_main_type;
-        //String target_sub_type = target_main_type;
         String source_sub_type = source.getAttribute("EntitySubtype");
         String target_sub_type = target.getAttribute("EntitySubtype");
 
+        ret.add("source_mtype_" + source_main_type);
+        ret.add("target_mtype_" + target_main_type);
+        ret.add("source_stype_" + source_sub_type);
+        ret.add("target_stype_" + target_sub_type);
         ret.add("mlvl_" + source_m_lvl + "_" + target_m_lvl);
         ret.add("mt_" + source_main_type + "_" + target_main_type);
         ret.add("st_" + source_sub_type + "_" + target_sub_type);
@@ -790,7 +792,8 @@ public class RelationFeatureExtractor {
         Constituent target = r.getTarget();
         Constituent source_head = getEntityHeadForConstituent(source, source.getTextAnnotation(), "EntityHeads");
         Constituent target_head = getEntityHeadForConstituent(target, target.getTextAnnotation(), "EntityHeads");
-
+        View annotatedView = source.getTextAnnotation().getView("RE_ANNOTATED");
+        View posView = source.getTextAnnotation().getView(ViewNames.POS);
         List<Constituent> source_parsed_list = parse.getConstituentsCoveringToken(source_head.getStartSpan());
         List<Constituent> target_parsed_list = parse.getConstituentsCoveringToken(target_head.getStartSpan());
         if (source.getSentenceId() == target.getSentenceId()){
@@ -800,9 +803,11 @@ public class RelationFeatureExtractor {
                     Constituent target_parsed = parse.getConstituentsCoveringToken(target_head.getStartSpan()).get(0);
                     List<Constituent> paths = PathFeatureHelper.getPathConstituents(source_parsed, target_parsed, 100);
                     for (int i = 0; i < paths.size(); i++){
-                        ret.add(new Pair(Integer.toString(i), paths.get(i).toString()));
-                        ret.add(new Pair("tag_" + Integer.toString(i), paths.get(i).getLabel()));
-                        ret.add(new Pair("pos_tag_" + Integer.toString(i), source.getTextAnnotation().getView(ViewNames.POS).getConstituentsCoveringToken(paths.get(i).getStartSpan()).get(0).getLabel()));
+                        Constituent cur = paths.get(i);
+                        ret.add(new Pair(Integer.toString(i), cur.toString()));
+                        ret.add(new Pair("tag_" + i, cur.getLabel()));
+                        ret.add(new Pair("pos_tag_" + i, posView.getConstituentsCoveringToken(cur.getStartSpan()).get(0).getLabel()));
+                        ret.add(new Pair("wordnettag_" + i, annotatedView.getConstituentsCoveringToken(cur.getStartSpan()).get(0).getAttribute("WORDNETTAG")));
                     }
                 }
             }catch (Exception e){
@@ -957,41 +962,58 @@ public class RelationFeatureExtractor {
         return ret;
     }
 
-    public List<String> getShallowParseFeature(Relation r) {
-        List<String> ret_features = new ArrayList<String>();
+    public List<Pair<String, String>> getShallowParseFeature(Relation r) {
+        List<Pair<String, String>> ret = new ArrayList<>();
         Constituent source = r.getSource();
         Constituent target = r.getTarget();
         TextAnnotation ta = source.getTextAnnotation();
-        Constituent sourceHead = getEntityHeadForConstituent(source, ta, "EntityHeads");
-        Constituent targetHead = getEntityHeadForConstituent(target, ta, "EntityHeads");
+        Constituent source_head = getEntityHeadForConstituent(source, ta, "TEST");
+        Constituent target_head = getEntityHeadForConstituent(target, ta, "TEST");
+        if (source_head.getStartSpan() == target_head.getStartSpan()){
+            return ret;
+        }
+        if (source.getStartSpan() == target.getStartSpan()){
+            return ret;
+        }
+        Constituent front = null;
+        Constituent back = null;
+        Constituent front_head = null;
+        Constituent back_head = null;
+        if (source_head.getStartSpan() > target_head.getStartSpan()){
+            front_head = target_head;
+            back_head = source_head;
+        }
+        else{
+            front_head = source_head;
+            back_head = target_head;
+        }
+        if (source.getStartSpan() > target.getStartSpan()){
+            front = target;
+            back = source;
+        }
+        else {
+            front = source;
+            back = target;
+        }
         View spView = ta.getView(ViewNames.SHALLOW_PARSE);
-        if (sourceHead.getStartSpan() >= targetHead.getEndSpan() - 1) {
-            List<Constituent> cons = spView.getConstituentsCoveringSpan(targetHead.getEndSpan(), sourceHead.getStartSpan() - 1);
-            Set<Constituent> labels_no_overlap = new HashSet<Constituent>(cons);
-            String fet = "";
-            for (Constituent c : labels_no_overlap) {
-                fet += c.getLabel();
-                if (c.getLabel().equals("NP") == false) {
-                    ret_features.add(c.getLabel());
-                }
-            }
 
-            //ret_features.add(fet);
+        List<String> betweenHeads = spView.getLabelsCoveringSpan(front_head.getEndSpan(), back_head.getStartSpan() - 1);
+        for (int i = 0; i < betweenHeads.size(); i++){
+            ret.add(new Pair("chunker_between_heads_" + i, betweenHeads.get(i)));
         }
-        if (targetHead.getStartSpan() >= sourceHead.getEndSpan() - 1) {
-            List<Constituent> cons = spView.getConstituentsCoveringSpan(sourceHead.getEndSpan(), targetHead.getStartSpan() - 1);
-            Set<Constituent> labels_no_overlap = new HashSet<Constituent>(cons);
-            String fet = "";
-            for (Constituent c : labels_no_overlap) {
-                fet += c.getLabel();
-                if (c.getLabel().equals("NP") == false) {
-                    ret_features.add(c.getLabel());
-                }
+        if (back.getStartSpan() > front.getEndSpan()){
+            List<String> betweenExtents = spView.getLabelsCoveringSpan(front.getEndSpan(), back.getStartSpan() - 1);
+            for (int i = 0; i < betweenExtents.size(); i++) {
+                ret.add(new Pair("chunker_between_extents_" + i, betweenExtents.get(i)));
             }
-            System.out.println(r.getSource() + " | " + r.getTarget() + ": " + fet);
-            //ret_features.add(fet);
         }
-        return ret_features;
+        else{
+            List<String> betweenExtents = spView.getLabelsCoveringSpan(front.getStartSpan(), back.getStartSpan());
+            for (int i = 0; i < betweenExtents.size(); i++) {
+                ret.add(new Pair("chunker_between_extents_inclusive_" + i, betweenExtents.get(i)));
+            }
+        }
+        return ret;
     }
 
     public List<String> getTemplateFeature(Relation r){
@@ -1040,17 +1062,17 @@ public class RelationFeatureExtractor {
     }
 
     public static List<String> patternRecognition(Constituent source, Constituent target){
-        List<String> ret = new ArrayList<>();
+        Set<String> ret = new HashSet<>();
         TextAnnotation ta = source.getTextAnnotation();
         Constituent source_head = getEntityHeadForConstituent(source, ta, "TEST");
         Constituent target_head = getEntityHeadForConstituent(target, ta, "TEST");
         if (source_head.getStartSpan() == target_head.getStartSpan()){
             ret.add("SAME_SOURCE_TARGET_EXCEPTION");
-            return ret;
+            return new ArrayList<>(ret);
         }
         if (source.getStartSpan() == target.getStartSpan()){
             ret.add("SAME_SOURCE_TARGET_EXTENT_EXCEPTION");
-            return ret;
+            return new ArrayList<>(ret);
         }
         Constituent front = null;
         Constituent back = null;
@@ -1087,8 +1109,24 @@ public class RelationFeatureExtractor {
                 }
             }
         }
+        TreeView parse = (TreeView) source.getTextAnnotation().getView(ViewNames.DEPENDENCY_STANFORD);
 
-
-        return ret;
+        List<Constituent> source_parsed_list = parse.getConstituentsCoveringToken(source_head.getStartSpan());
+        List<Constituent> target_parsed_list = parse.getConstituentsCoveringToken(target_head.getStartSpan());
+        if (source.getSentenceId() == target.getSentenceId()){
+            try {
+                if (source_parsed_list.size() != 0 && target_parsed_list.size() != 0) {
+                    Constituent source_parsed = parse.getConstituentsCoveringToken(source_head.getStartSpan()).get(0);
+                    Constituent target_parsed = parse.getConstituentsCoveringToken(target_head.getStartSpan()).get(0);
+                    List<Constituent> paths = PathFeatureHelper.getPathConstituents(source_parsed, target_parsed, 100);
+                    if (paths.get(paths.size() - 2).getLabel().equals("prep") && paths.get(paths.size() - 1).getLabel().equals("pobj")){
+                        ret.add("prep_pobj_dep_structure");
+                    }
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        return new ArrayList<>(ret);
     }
 }

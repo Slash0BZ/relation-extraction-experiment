@@ -3,14 +3,12 @@ package org.cogcomp.re;
 import com.sun.org.apache.regexp.internal.RE;
 import edu.illinois.cs.cogcomp.annotation.AnnotatorService;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
-import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
-import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Relation;
-import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Sentence;
-import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.lbjava.learn.BatchTrainer;
 import edu.illinois.cs.cogcomp.lbjava.learn.Learner;
 import edu.illinois.cs.cogcomp.lbjava.learn.Lexicon;
 import edu.illinois.cs.cogcomp.lbjava.parse.Parser;
+import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.FlatGazetteers;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 import edu.illinois.cs.cogcomp.pipeline.common.Stanford331Configurator;
 import edu.illinois.cs.cogcomp.pipeline.handlers.StanfordDepHandler;
@@ -145,8 +143,57 @@ public class ExperimentPrinter {
 
     public static void printPattern(){
         try{
-            ACEReader aceReader = new ACEReader("data/all", false);
+            Properties stanfordProps = new Properties();
+            stanfordProps.put("annotators", "pos, parse");
+            stanfordProps.put("parse.originalDependencies", true);
+            stanfordProps.put("parse.maxlen", Stanford331Configurator.STFRD_MAX_SENTENCE_LENGTH);
+            stanfordProps.put("parse.maxtime", Stanford331Configurator.STFRD_TIME_PER_SENTENCE);
+            POSTaggerAnnotator posAnnotator = new POSTaggerAnnotator("pos", stanfordProps);
+            ParserAnnotator parseAnnotator = new ParserAnnotator("parse", stanfordProps);
+            StanfordDepHandler stanfordDepHandler = new StanfordDepHandler(posAnnotator, parseAnnotator);
+            ACEReader aceReader = new ACEReader("data/partition_with_dev/dev", false);
+            int pos_pattern = 0;
+            int pos_nonpattern = 0;
+            int neg_pattern = 0;
+            int neg_nonpattern = 0;
             for (TextAnnotation ta : aceReader){
+                List<Relation> null_relations = new ArrayList<>();
+                if (ta.getId().equals("bn\\CNN_ENG_20030424_070008.15.apf.xml")){
+                    continue;
+                }
+                stanfordDepHandler.addView(ta);
+                View entityView = ta.getView(ViewNames.MENTION_ACE);
+                for (int i = 0; i < ta.getNumberOfSentences(); i++) {
+                    Sentence curSentence = ta.getSentence(i);
+                    List<Constituent> cins = entityView.getConstituentsCoveringSpan(curSentence.getStartSpan(), curSentence.getEndSpan());
+                    for (int j = 0; j < cins.size(); j++) {
+                        for (int k = j + 1; k < cins.size(); k++) {
+                            Constituent firstArg = cins.get(j);
+                            Constituent secondArg = cins.get(k);
+                            Constituent firstArgHead = RelationFeatureExtractor.getEntityHeadForConstituent(firstArg, firstArg.getTextAnnotation(), "A");
+                            Constituent secondArgHead = RelationFeatureExtractor.getEntityHeadForConstituent(secondArg, secondArg.getTextAnnotation(), "A");
+
+                            boolean found = false;
+                            for (Relation r : entityView.getRelations()) {
+                                if (r.getSource().getStartSpan() == firstArg.getStartSpan() && r.getSource().getEndSpan() == firstArg.getEndSpan()
+                                        && r.getTarget().getStartSpan() == secondArg.getStartSpan() && r.getTarget().getEndSpan() == secondArg.getEndSpan()) {
+                                    found = true;
+                                    break;
+                                }
+                                if (r.getTarget().getStartSpan() == firstArg.getStartSpan() && r.getTarget().getEndSpan() == firstArg.getEndSpan()
+                                        && r.getSource().getStartSpan() == secondArg.getStartSpan() && r.getSource().getEndSpan() == secondArg.getEndSpan()) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                Relation newRelation = new Relation("NOT_RELATED", firstArg, secondArg, 1.0f);
+                                null_relations.add(newRelation);
+                            }
+                        }
+                    }
+                }
+
                 for (Relation r : ta.getView(ViewNames.MENTION_ACE).getRelations()){
                     List<String> ret = RelationFeatureExtractor.patternRecognition(r.getSource(), r.getTarget());
                     RelationFeatureExtractor.patternRecognition(r.getTarget(), r.getSource());
@@ -154,17 +201,40 @@ public class ExperimentPrinter {
                     Constituent target = r.getTarget();
                     Constituent source_head = RelationFeatureExtractor.getEntityHeadForConstituent(source, ta, "TEST");
                     Constituent target_head = RelationFeatureExtractor.getEntityHeadForConstituent(target, ta, "TEST");
-                    /*
-                    if (!ret.contains("FORMULAIC") && r.getAttribute("RelationMentionLexicalCondition").equals("Formulaic")){
+
+                    if (ret.contains("prep_pobj_dep_structure")){
+
+                        pos_pattern ++;
+                    }
+                    else {
+                        pos_nonpattern ++;
+                    }
+                }
+                for (Relation r : null_relations){
+                    List<String> ret = RelationFeatureExtractor.patternRecognition(r.getSource(), r.getTarget());
+                    RelationFeatureExtractor.patternRecognition(r.getTarget(), r.getSource());
+                    Constituent source = r.getSource();
+                    Constituent target = r.getTarget();
+                    Constituent source_head = RelationFeatureExtractor.getEntityHeadForConstituent(source, ta, "TEST");
+                    Constituent target_head = RelationFeatureExtractor.getEntityHeadForConstituent(target, ta, "TEST");
+
+                    if (ret.contains("prep_pobj_dep_structure")){
                         System.out.println(ta.getSentenceFromToken(source.getStartSpan()));
                         System.out.println(source.toString() + " || " + target.toString());
                         System.out.println(source_head.toString() + " || " + target_head.toString());
                         System.out.println(source.getAttribute("EntityType") + " || " + target.getAttribute("EntityType"));
                         System.out.println();
+                        neg_pattern ++;
                     }
-                    */
+                    else {
+                        neg_nonpattern ++;
+                    }
                 }
             }
+            System.out.println("POSITIVE: " + (double)pos_pattern / (double)(pos_nonpattern + pos_pattern));
+            System.out.println("NEGATIVE: " + (double)neg_pattern / (double)(neg_nonpattern + neg_pattern));
+            System.out.println("Pattern fit and gold / pattern fit: " + (double)pos_pattern / (double)(pos_pattern + neg_pattern));
+            System.out.println("Pattern nonfit and gold / pattern nonfit: " + (double)pos_nonpattern / (double)(pos_nonpattern + neg_nonpattern));
         }
         catch (Exception e){
             e.printStackTrace();
