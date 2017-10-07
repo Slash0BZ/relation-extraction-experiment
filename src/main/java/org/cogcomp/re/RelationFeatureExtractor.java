@@ -309,7 +309,6 @@ public class RelationFeatureExtractor {
         TextAnnotation ta = source.getTextAnnotation();
         for (int i = source.getStartSpan(); i < source.getEndSpan(); i++){
             ret_features.add(ta.getToken(i));
-            //ret_features.add("BC_" + getBrownClusterLabel(ta, i));
         }
         return ret_features;
     }
@@ -320,7 +319,6 @@ public class RelationFeatureExtractor {
         TextAnnotation ta = target.getTextAnnotation();
         for (int i = target.getStartSpan(); i < target.getEndSpan(); i++){
             ret_features.add(ta.getToken(i));
-            //ret_features.add("BC_" + getBrownClusterLabel(ta, i));
         }
         return ret_features;
     }
@@ -331,15 +329,12 @@ public class RelationFeatureExtractor {
         TextAnnotation ta = source.getTextAnnotation();
         if (source.getEndSpan() == target.getStartSpan() - 1){
             ret_features.add("singleword_" + source.getTextAnnotation().getToken(source.getEndSpan()));
-            //ret_features.add("singlewordbc_" + getBrownClusterLabel(ta, source.getEndSpan()));
         }
         else if (target.getEndSpan() == source.getStartSpan() - 1){
             ret_features.add("singleword_" + target.getTextAnnotation().getToken(target.getEndSpan()));
-            //ret_features.add("singlewordbc_" + getBrownClusterLabel(ta, target.getEndSpan()));
         }
         else {
             ret_features.add("No_singleword");
-            //ret_features.add("No_singleword_bc");
         }
         return ret_features;
     }
@@ -353,13 +348,11 @@ public class RelationFeatureExtractor {
         if (source_head.getEndSpan() < target_head.getStartSpan()){
             for (int i = source_head.getEndSpan(); i < target_head.getStartSpan(); i++) {
                 ret_features.add("bowbethead_" + source.getTextAnnotation().getToken(i));
-                //ret_features.add("bowbetheadbc_" + getBrownClusterLabel(ta, i));
             }
         }
         if (target_head.getEndSpan() < source_head.getStartSpan()){
             for (int i = target_head.getEndSpan(); i < source_head.getStartSpan(); i++) {
                 ret_features.add("bowbethead_" + source.getTextAnnotation().getToken(i));
-                //ret_features.add("bowbetheadbc_" + getBrownClusterLabel(ta, i));
             }
         }
         return ret_features;
@@ -754,8 +747,9 @@ public class RelationFeatureExtractor {
 
         ret.add("source_mtype_" + source_main_type);
         ret.add("target_mtype_" + target_main_type);
-        ret.add("source_stype_" + source_sub_type);
-        ret.add("target_stype_" + target_sub_type);
+        //ret.add("source_stype_" + source_sub_type);
+        //ret.add("target_stype_" + target_sub_type);
+
         ret.add("mlvl_" + source_m_lvl + "_" + target_m_lvl);
         ret.add("mt_" + source_main_type + "_" + target_main_type);
         ret.add("st_" + source_sub_type + "_" + target_sub_type);

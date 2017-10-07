@@ -24,6 +24,7 @@ import org.cogcomp.md.BIOFeatureExtractor;
 import org.cogcomp.md.MentionAnnotator;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.*;
 import java.lang.*;
 
@@ -39,7 +40,7 @@ import java.lang.*;
  *      type "relation_full_bi": reads all the relations including negative relations into bi-directional labels
  *      type "relation_full_trim": reads all the relations, including a trimmed set of negative relations at rate "trim_factor"
  */
-public class ACEMentionReader implements Parser
+public class ACEMentionReader implements Parser, Serializable
 {
     private List<Relation> relations;
     private List<Constituent> entities;
@@ -407,4 +408,7 @@ public class ACEMentionReader implements Parser
         currentRelationFullBiTestIndex = 0;
     }
 
+    public List<Relation> readList(){
+        return relation_full_bi_test;
+    }
 }

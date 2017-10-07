@@ -126,35 +126,31 @@ public class ACERelationTester {
         int null_relation_f = 0;
         int null_relation_all = 0;
         for (int i = 0; i < 5; i++) {
-            binary_relation_classifier binary_classifier = new binary_relation_classifier("models/binary_classifier_fold_" + i + ".lc",
-                    "models/binary_classifier_fold_" + i + ".lex");
+            //binary_relation_classifier binary_classifier = new binary_relation_classifier("models/binary_classifier_fold_" + i + ".lc",
+                    //"models/binary_classifier_fold_" + i + ".lex");
             fine_relation_label output = new fine_relation_label();
-            Parser train_parser = new ACEMentionReader("data/partition_with_dev/train/" + i, "relation_full_bi_test");
+            ACEMentionReader train_parser_from_file = IOHelper.readFiveFold(i, "TRAIN");
             relation_classifier classifier = new relation_classifier();
             classifier.setLexiconLocation("models/relation_classifier_fold_" + i + ".lex");
-            BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
+            BatchTrainer trainer = new BatchTrainer(classifier, train_parser_from_file);
             Learner preExtractLearner = trainer.preExtract("models/relation_classifier_fold_" + i + ".ex", true, Lexicon.CountPolicy.none);
             preExtractLearner.saveLexicon();
             Lexicon lexicon = preExtractLearner.getLexicon();
             classifier.setLexicon(lexicon);
-            int examples = 0;
-            for (Object example = train_parser.next(); example != null; example = train_parser.next()){
-                examples ++;
-            }
-            train_parser.reset();
+            int examples = train_parser_from_file.readList().size();
             classifier.initialize(examples, preExtractLearner.getLexicon().size());
-            for (Object example = train_parser.next(); example != null; example = train_parser.next()){
-                if (is_null(binary_classifier, example)){
-                    continue;
-                }
-                classifier.learn(example);
+            for (Relation r : train_parser_from_file.readList()){
+                //if (is_null(binary_classifier, r)){
+                    //continue;
+                //}
+                classifier.learn(r);
             }
             classifier.doneWithRound();
             classifier.doneLearning();
 
             ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
-            Parser parser_full = new ACEMentionReader("data/partition_with_dev/eval/" + i, "relation_full_bi_test");
-            for (Object example = parser_full.next(); example != null; example = parser_full.next()){
+            ACEMentionReader test_parser_from_file = IOHelper.readFiveFold(i, "TEST");
+            for (Relation example : test_parser_from_file.readList()){
                 List<String> outputs = new ArrayList<String>();
                 String predicted_label = constrainedClassifier.discreteValue(example);
                 String gold_label = output.discreteValue(example);
@@ -191,10 +187,10 @@ public class ACERelationTester {
                         predicted_label = ACEMentionReader.getOppoName(oppo_predicted_label);
                     }
                 }
-                if (is_null(binary_classifier, example)){
+                //if (is_null(binary_classifier, example)){
                     //predicted_label = "NOT_RELATED";
                     //continue;
-                }
+                //}
                 if (predicted_label.equals("NOT_RELATED") == false){
                     if (pMap.containsKey(predicted_label)){
                         pMap.put(predicted_label, pMap.get(predicted_label) + 1);
@@ -304,8 +300,8 @@ public class ACERelationTester {
                 }
             }
             classifier.forget();
-            parser_full.reset();
-            train_parser.reset();
+            //parser_full.reset();
+            //train_parser.reset();
         }
         /*
         for (String o : outputs){
