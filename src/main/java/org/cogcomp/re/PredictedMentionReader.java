@@ -2,16 +2,29 @@ package org.cogcomp.re;
 import edu.illinois.cs.cogcomp.chunker.main.ChunkerAnnotator;
 import edu.illinois.cs.cogcomp.chunker.main.ChunkerConfigurator;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
+import edu.illinois.cs.cogcomp.core.resources.ResourceConfigurator;
+import edu.illinois.cs.cogcomp.edison.utilities.WordNetManager;
+import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.BrownClusters;
+import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.FlatGazetteers;
+import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.Gazetteers;
+import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.GazetteersFactory;
 import edu.illinois.cs.cogcomp.ner.NERAnnotator;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.lbjava.parse.Parser;
+import edu.illinois.cs.cogcomp.pipeline.common.Stanford331Configurator;
+import edu.illinois.cs.cogcomp.pipeline.handlers.StanfordDepHandler;
 import edu.illinois.cs.cogcomp.pipeline.server.ServerClientAnnotator;
 import edu.illinois.cs.cogcomp.edison.annotators.*;
 import edu.illinois.cs.cogcomp.pos.POSAnnotator;
+import edu.stanford.nlp.pipeline.POSTaggerAnnotator;
+import edu.stanford.nlp.pipeline.ParserAnnotator;
+import org.cogcomp.Datastore;
+import org.cogcomp.md.BIOFeatureExtractor;
 import org.cogcomp.md.MentionAnnotator;
 
+import java.io.File;
 import java.util.*;
 import java.lang.*;
 
@@ -48,14 +61,60 @@ public class PredictedMentionReader implements Parser{
             BrownClusterViewGenerator bc_annotator = new BrownClusterViewGenerator("c1000", BrownClusterViewGenerator.file1000);
             ChunkerAnnotator chunker  = new ChunkerAnnotator(true);
             chunker.initialize(new ChunkerConfigurator().getDefaultConfig());
-            NERAnnotator co = new NERAnnotator(ViewNames.NER_CONLL);
             MentionAnnotator mentionAnnotator = new MentionAnnotator("ACE_TYPE");
+
+            Map<Integer, Integer> distMap = new HashMap<Integer, Integer>();
+            Datastore ds = new Datastore(new ResourceConfigurator().getDefaultConfig());
+            File gazetteersResource = ds.getDirectory("org.cogcomp.gazetteers", "gazetteers", 1.3, false);
+            GazetteersFactory.init(5, gazetteersResource.getPath() + File.separator + "gazetteers", true);
+            Vector<String> bcs = new Vector<>();
+            bcs.add("brown-clusters" + File.separator + "brown-english-wikitext.case-intact.txt-c1000-freq10-v3.txt");
+            bcs.add("brown-clusters" + File.separator + "brownBllipClusters");
+            bcs.add("brown-clusters" + File.separator + "brown-rcv1.clean.tokenized-CoNLL03.txt-c1000-freq1.txt");
+            Vector<Integer> bcst = new Vector<>();
+            bcst.add(5);
+            bcst.add(5);
+            bcst.add(5);
+            Vector<Boolean> bcsl = new Vector<>();
+            bcsl.add(false);
+            bcsl.add(false);
+            bcsl.add(false);
+            BrownClusters.init(bcs, bcst, bcsl);
+            WordNetManager.loadConfigAsClasspathResource(true);
+            WordNetManager wordNet = WordNetManager.getInstance();
+            Gazetteers gazetteers = GazetteersFactory.get();
+            BrownClusters brownClusters = BrownClusters.get();
+            NERAnnotator nerAnnotator = new NERAnnotator(ViewNames.NER_CONLL);
+
+            Properties stanfordProps = new Properties();
+            stanfordProps.put("annotators", "pos, parse");
+            stanfordProps.put("parse.originalDependencies", true);
+            stanfordProps.put("parse.maxlen", Stanford331Configurator.STFRD_MAX_SENTENCE_LENGTH);
+            stanfordProps.put("parse.maxtime", Stanford331Configurator.STFRD_TIME_PER_SENTENCE);
+            POSTaggerAnnotator posAnnotator = new POSTaggerAnnotator("pos", stanfordProps);
+            ParserAnnotator parseAnnotator = new ParserAnnotator("parse", stanfordProps);
+            StanfordDepHandler stanfordDepHandler = new StanfordDepHandler(posAnnotator, parseAnnotator);
             for (TextAnnotation ta : aceReader){
+                if (ta.getId().equals("bn\\CNN_ENG_20030424_070008.15.apf.xml")){
+                    continue;
+                }
                 ta.addView(pos_annotator);
-                //chunker.addView(ta);
-                bc_annotator.addView(ta);
-                //co.addView(ta);
                 mentionAnnotator.addView(ta);
+                stanfordDepHandler.addView(ta);
+                chunker.addView(ta);
+
+                View annotatedTokenView = new SpanLabelView("RE_ANNOTATED", ta);
+                for (Constituent co : ta.getView(ViewNames.TOKENS).getConstituents()){
+                    Constituent c = co.cloneForNewView("RE_ANNOTATED");
+                    for (String s : co.getAttributeKeys()){
+                        c.addAttribute(s, co.getAttribute(s));
+                    }
+                    c.addAttribute("BC", brownClusters.getPrefixesCombined(c.toString()));
+                    c.addAttribute("WORDNETTAG", BIOFeatureExtractor.getWordNetTags(wordNet, c));
+                    c.addAttribute("WORDNETHYM", BIOFeatureExtractor.getWordNetHyms(wordNet, c));
+                    annotatedTokenView.addConstituent(c);
+                }
+                ta.addView("RE_ANNOTATED", annotatedTokenView);
 
                 View goldView = ta.getView(ViewNames.MENTION_ACE);
                 View predictedView = ta.getView(ViewNames.MENTION);
@@ -79,6 +138,10 @@ public class PredictedMentionReader implements Parser{
                         for (int k = j + 1; k < in_cur_sentence.size(); k++){
                             Constituent source = in_cur_sentence.get(j);
                             Constituent target = in_cur_sentence.get(k);
+
+                            source.addAttribute("GAZ", ((FlatGazetteers) gazetteers).annotatePhrase(source));
+                            target.addAttribute("GAZ", ((FlatGazetteers)gazetteers).annotatePhrase(target));
+
                             boolean found_tag = false;
                             for (Relation r : goldView.getRelations()){
 

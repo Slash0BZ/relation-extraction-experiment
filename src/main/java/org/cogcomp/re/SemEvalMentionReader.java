@@ -3,6 +3,7 @@ package org.cogcomp.re;
 import edu.illinois.cs.cogcomp.annotation.BasicTextAnnotationBuilder;
 import edu.illinois.cs.cogcomp.chunker.main.ChunkerAnnotator;
 import edu.illinois.cs.cogcomp.chunker.main.ChunkerConfigurator;
+import edu.illinois.cs.cogcomp.chunker.main.lbjava.Chunker;
 import edu.illinois.cs.cogcomp.core.datastructures.IntPair;
 import edu.illinois.cs.cogcomp.core.datastructures.Pair;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
@@ -17,8 +18,12 @@ import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.Gazetteers;
 import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.GazetteersFactory;
 import edu.illinois.cs.cogcomp.ner.NERAnnotator;
 import edu.illinois.cs.cogcomp.nlp.tokenizer.StatefulTokenizer;
+import edu.illinois.cs.cogcomp.pipeline.common.Stanford331Configurator;
+import edu.illinois.cs.cogcomp.pipeline.handlers.StanfordDepHandler;
 import edu.illinois.cs.cogcomp.pipeline.server.ServerClientAnnotator;
 import edu.illinois.cs.cogcomp.pos.POSAnnotator;
+import edu.stanford.nlp.pipeline.POSTaggerAnnotator;
+import edu.stanford.nlp.pipeline.ParserAnnotator;
 import org.cogcomp.Datastore;
 import org.cogcomp.md.BIOFeatureExtractor;
 import org.cogcomp.md.MentionAnnotator;
@@ -41,6 +46,8 @@ public class SemEvalMentionReader implements Parser {
     private WordNetManager _wordnet;
     private MentionAnnotator _mentionAnnotator;
     private NERAnnotator _nerAnnotator;
+    private ChunkerAnnotator __chunker;
+    private StanfordDepHandler __stanfordDep;
 
     public void initExternalTools(){
         try {
@@ -67,6 +74,18 @@ public class SemEvalMentionReader implements Parser {
             _brownClusters = BrownClusters.get();
             _mentionAnnotator = new MentionAnnotator("ACE_TYPE");
             _nerAnnotator = new NERAnnotator(ViewNames.NER_CONLL);
+
+            __chunker  = new ChunkerAnnotator(true);
+            __chunker.initialize(new ChunkerConfigurator().getDefaultConfig());
+
+            Properties stanfordProps = new Properties();
+            stanfordProps.put("annotators", "pos, parse");
+            stanfordProps.put("parse.originalDependencies", true);
+            stanfordProps.put("parse.maxlen", Stanford331Configurator.STFRD_MAX_SENTENCE_LENGTH);
+            stanfordProps.put("parse.maxtime", Stanford331Configurator.STFRD_TIME_PER_SENTENCE);
+            POSTaggerAnnotator posAnnotator = new POSTaggerAnnotator("pos", stanfordProps);
+            ParserAnnotator parseAnnotator = new ParserAnnotator("parse", stanfordProps);
+            __stanfordDep = new StanfordDepHandler(posAnnotator, parseAnnotator);
         }
         catch (Exception e){
             e.printStackTrace();
@@ -162,6 +181,8 @@ public class SemEvalMentionReader implements Parser {
             TextAnnotation ta = BasicTextAnnotationBuilder.createTextAnnotationFromTokens(tokens);
             try {
                 ta.addView(_posAnnotator);
+                __chunker.addView(ta);
+                __stanfordDep.addView(ta);
                 View annotatedTokenView = new SpanLabelView("RE_ANNOTATED", ta);
                 for (Constituent co : ta.getView(ViewNames.TOKENS).getConstituents()){
                     Constituent c = co.cloneForNewView("RE_ANNOTATED");

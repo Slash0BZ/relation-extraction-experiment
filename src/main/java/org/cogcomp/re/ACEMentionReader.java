@@ -205,7 +205,7 @@ public class ACEMentionReader implements Parser, Serializable
                                     relations_full.add(r);
                                     Relation opdirNeg = new Relation("NOT_RELATED", secondArg, firstArg, 1.0f);
                                     opdirNeg.addAttribute("RelationType", "NOT_RELATED");
-                                    relations_full.add(opdirNeg);
+                                    //relations_full.add(opdirNeg);
                                     relations_full_trim.add(r);
                                     found_as_source = true;
                                     String opTypeName = getOppoName(r.getAttribute("RelationSubtype"));
@@ -231,7 +231,7 @@ public class ACEMentionReader implements Parser, Serializable
                                     relations_full.add(r);
                                     Relation opdirNeg = new Relation("NOT_RELATED", firstArg, secondArg, 1.0f);
                                     opdirNeg.addAttribute("RelationType", "NOT_RELATED");
-                                    relations_full.add(opdirNeg);
+                                    //relations_full.add(opdirNeg);
                                     relations_full_trim.add(r);
                                     found_as_target = true;
                                     String opTypeName = getOppoName(r.getAttribute("RelationSubtype"));

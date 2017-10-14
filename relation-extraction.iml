@@ -19,8 +19,8 @@
     <orderEntry type="library" name="Maven: net.sf.squirrel-sql.thirdparty-non-maven:java-cup:0.11a" level="project" />
     <orderEntry type="library" name="Maven: de.bwaldvogel:liblinear:1.94" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-math3:3.6" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-corpusreaders:3.1.32" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-core-utilities:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-corpusreaders:3.1.33" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-core-utilities:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:jwnl-prime:1.0.4" level="project" />
     <orderEntry type="library" name="Maven: commons-logging:commons-logging:1.1.1" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:wordnet:1.0-binary" level="project" />
@@ -35,12 +35,12 @@
     <orderEntry type="library" name="Maven: com.h2database:h2:1.4.191" level="project" />
     <orderEntry type="library" name="Maven: com.google.protobuf:protobuf-java:3.2.0" level="project" />
     <orderEntry type="library" name="Maven: com.google.protobuf:protobuf-java-util:3.2.0" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-tokenizer:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-tokenizer:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: mysql:mysql-connector-java:5.1.34" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-pos:3.1.32" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:LBJava-NLP-tools:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-pos:3.1.33" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:LBJava-NLP-tools:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-pos-models:3.0.13" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:stanford_3.3.1:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:stanford_3.3.1:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: edu.stanford.nlp:stanford-corenlp:3.3.1" level="project" />
     <orderEntry type="library" name="Maven: com.io7m.xom:xom:1.2.10" level="project" />
     <orderEntry type="library" name="Maven: xml-apis:xml-apis:1.3.03" level="project" />
@@ -50,7 +50,7 @@
     <orderEntry type="library" name="Maven: javax.xml.bind:jaxb-api:2.2.7" level="project" />
     <orderEntry type="library" name="Maven: com.googlecode.efficient-java-matrix-library:ejml:0.23" level="project" />
     <orderEntry type="library" name="Maven: edu.stanford.nlp:stanford-corenlp:models:3.3.1" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-similarity:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-similarity:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: org.mapdb:mapdb:3.0.3" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.0.6" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-runtime:1.0.6" level="project" />
@@ -131,35 +131,35 @@
     <orderEntry type="library" name="Maven: net.sf.jopt-simple:jopt-simple:4.3" level="project" />
     <orderEntry type="library" name="Maven: org.sweble.wikitext:swc-engine:1.1.0" level="project" />
     <orderEntry type="library" name="Maven: com.wcohen:SecondString:1.0" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-edison:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-edison:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: org.tartarus:snowball:1.0" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-nlp-pipeline:3.1.32" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-chunker:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-nlp-pipeline:3.1.33" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-chunker:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-chunker-model:3.0.77" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-curator:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-curator:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:curator-interfaces:0.7" level="project" />
     <orderEntry type="library" name="Maven: org.apache.thrift:libthrift:0.8.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpclient:4.1.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.1.3" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-lemmatizer:3.1.32" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-quantifier:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-lemmatizer:3.1.33" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-quantifier:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-quantifier-models:2.0.5" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-prep-srl:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-prep-srl:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-prepsrl-model:3.1" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-comma:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-comma:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-sl:1.3.1" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-verbsense:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-verbsense:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-common-resources:illinoisSRL:1.4" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:IllinoisSL-core:0.1-withJLIS" level="project" />
     <orderEntry type="library" name="Maven: commons-io:commons-io:1.3.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.4" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-md:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-md:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-srl:5.1.15" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-srl-models:verb-stanford:5.1" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-srl-models:nom-stanford:5.1" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:inference:0.5.0" level="project" />
     <orderEntry type="library" name="Maven: net.sourceforge.argparse4j:argparse4j:0.7.0" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-depparse:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-depparse:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: edu.cmu.cs.ark:ChuLiuEdmonds:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-depparse-model:3.0" level="project" />
     <orderEntry type="library" name="Maven: com.sparkjava:spark-core:2.5.5" level="project" />
@@ -177,12 +177,12 @@
     <orderEntry type="library" name="Maven: org.eclipse.jetty.websocket:websocket-client:9.3.6.v20151106" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty.websocket:websocket-servlet:9.3.6.v20151106" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty.websocket:websocket-api:9.3.6.v20151106" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-time:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-time:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: org.apache.uima:uimaj-core:2.8.1" level="project" />
     <orderEntry type="library" name="Maven: com.github.heideltime:heideltime:2.1" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-time-models:1.0" level="project" />
     <orderEntry type="library" name="Maven: commons-cli:commons-cli:1.3" level="project" />
-    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-ner:3.1.32" level="project" />
+    <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-ner:3.1.33" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-ner-model:CoNLL_enron:3.3" level="project" />
     <orderEntry type="library" name="Maven: edu.illinois.cs.cogcomp:illinois-ner-model:OntoNotes:3.3" level="project" />
     <orderEntry type="library" name="Maven: org.cogcomp:cogcomp-datastore:1.9.10" level="project" />

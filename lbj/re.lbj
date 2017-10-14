@@ -295,6 +295,14 @@ discrete% patternFeatures (Relation r) <- {
     }
 }
 
+real% similarityFeatures (Relation r) <- {
+    Comparator comp = new Comparator();
+    double[] scores = comp.score(r, "");
+    for (int i = 0; i < scores.length; i++){
+        sense i : scores[i];
+    }
+}
+
 discrete% gazetteerFeatures (Relation r) <-
     gazetteerSource, gazetteerTarget
 
@@ -302,11 +310,12 @@ discrete% wordNetFeatures (Relation r) <-
     wordNetHym, wordNetTag
 
 discrete% baseFeatures (Relation r) <-
-    lexical_features, collocations_features, structual_features, mention_features, template_features
+    //lexical_features, collocations_features, structual_features, mention_features, template_features
+    structual_features, mention_features, template_features
 
 discrete relation_classifier(Relation r) <-
 learn fine_relation_label
-    using baseFeatures, wordNetFeatures, gazetteerFeatures, dependency_features, patternFeatures, shallow_parse_features
+    using baseFeatures, wordNetFeatures, gazetteerFeatures, dependency_features, patternFeatures, shallow_parse_features, similarityFeatures
     from new ACEMentionReader("data/onedoc", "relation_full_bi_test")
     1 rounds
     with SupportVectorMachine{
@@ -318,7 +327,7 @@ end
 
 discrete SemEval_classifier (Relation r) <-
 learn fine_relation_label
-    using lexical_features, collocations_features, wordNetFeatures, gazetteerFeatures, template_features
+    using lexical_features, collocations_features, wordNetFeatures, gazetteerFeatures, dependency_features, shallow_parse_features
     from new SemEvalMentionReader("", "")
     1 rounds
     with SupportVectorMachine{

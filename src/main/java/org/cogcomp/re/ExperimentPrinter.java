@@ -240,7 +240,161 @@ public class ExperimentPrinter {
             e.printStackTrace();
         }
     }
+
+    public static void produceSamples(){
+        try {
+            Random rand = new Random();
+            ACEReader aceReader = new ACEReader("data/dev", false);
+            List<Relation> examples = new ArrayList<>();
+            Properties stanfordProps = new Properties();
+            stanfordProps.put("annotators", "pos, parse");
+            stanfordProps.put("parse.originalDependencies", true);
+            stanfordProps.put("parse.maxlen", Stanford331Configurator.STFRD_MAX_SENTENCE_LENGTH);
+            stanfordProps.put("parse.maxtime", Stanford331Configurator.STFRD_TIME_PER_SENTENCE);
+            POSTaggerAnnotator posAnnotator = new POSTaggerAnnotator("pos", stanfordProps);
+            ParserAnnotator parseAnnotator = new ParserAnnotator("parse", stanfordProps);
+            StanfordDepHandler stanfordDepHandler = new StanfordDepHandler(posAnnotator, parseAnnotator);
+            for (TextAnnotation ta : aceReader){
+                if (ta.getId().equals("bn\\CNN_ENG_20030424_070008.15.apf.xml")){
+                    continue;
+                }
+                stanfordDepHandler.addView(ta);
+                for (Relation r : ta.getView(ViewNames.MENTION_ACE).getRelations()){
+                    if (r.getAttribute("RelationType").equals("PHYS")) {
+                        if (rand.nextDouble() < 0.05){
+                            examples.add(r);
+                        }
+                    }
+                }
+            }
+            IOHelper.serializeRelationsOut(examples, "preprocess/relations/PHYS");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void printSimilarities(){
+        try {
+            ACEReader aceReader = new ACEReader("data/partition_with_dev/dev", false);
+            List<Relation> examples = IOHelper.serializeRelationsIn("preprocess/relations/PHYS");
+            for (Relation r : examples){
+                TextAnnotation ta = r.getSource().getTextAnnotation();
+                Constituent source = r.getSource();
+                Constituent target = r.getTarget();
+                Constituent source_head = RelationFeatureExtractor.getEntityHeadForConstituent(source, ta, "");
+                Constituent target_head = RelationFeatureExtractor.getEntityHeadForConstituent(target, ta, "");
+                System.out.println(ta.getSentenceFromToken(source.getStartSpan()));
+                System.out.println(r.getAttribute("RelationType") + ":" + r.getAttribute("RelationSubtype"));
+                System.out.println(source.toString() + " || " + target.toString());
+                System.out.println(source_head.toString() + " || " + target_head.toString());
+            }
+            System.exit(0);
+            Properties stanfordProps = new Properties();
+            stanfordProps.put("annotators", "pos, parse");
+            stanfordProps.put("parse.originalDependencies", true);
+            stanfordProps.put("parse.maxlen", Stanford331Configurator.STFRD_MAX_SENTENCE_LENGTH);
+            stanfordProps.put("parse.maxtime", Stanford331Configurator.STFRD_TIME_PER_SENTENCE);
+            POSTaggerAnnotator posAnnotator = new POSTaggerAnnotator("pos", stanfordProps);
+            ParserAnnotator parseAnnotator = new ParserAnnotator("parse", stanfordProps);
+            StanfordDepHandler stanfordDepHandler = new StanfordDepHandler(posAnnotator, parseAnnotator);
+            Comparator comparator = new Comparator();
+            double[] avg_is_phys = new double[14];
+            for (int i = 0; i < avg_is_phys.length; i++){
+                avg_is_phys[i] = 0.0;
+            }
+            int avg_is_phys_counter = 0;
+            double[] avg_is_phys_op = new double[14];
+            for (int i = 0; i < avg_is_phys_op.length; i++){
+                avg_is_phys_op[i] = 0.0;
+            }
+            int avg_is_phys_op_counter = 0;
+            double[] avg_not_phys = new double[14];
+            for (int i = 0; i < avg_not_phys.length; i++){
+                avg_not_phys[i] = 0.0;
+            }
+            int avg_not_phys_counter = 0;
+            double[] avg_not_rel = new double[14];
+            int avg_not_rel_counter = 0;
+            ACEMentionReader aceMentionReader = IOHelper.serializeDataIn("preprocess/reader/dev");
+            for (Relation r : aceMentionReader.readList()){
+
+                if (r.getAttribute("RelationType").contains("PHYS")){
+                    TextAnnotation ta = r.getSource().getTextAnnotation();
+                    Constituent source = r.getSource();
+                    Constituent target = r.getTarget();
+                    Constituent source_head = RelationFeatureExtractor.getEntityHeadForConstituent(source, ta, "");
+                    Constituent target_head = RelationFeatureExtractor.getEntityHeadForConstituent(target, ta, "");
+                    System.out.println(ta.getSentenceFromToken(source.getStartSpan()));
+                    System.out.println(r.getAttribute("RelationType") + ":" + r.getAttribute("RelationSubtype"));
+                    System.out.println(source.toString() + " || " + target.toString());
+                    System.out.println(source_head.toString() + " || " + target_head.toString());
+                    for (String s : Comparator.compareRelationsHelper(r)){
+                        System.out.println(s);
+                    }
+                    System.out.println();
+                }
+
+
+                if (r.getAttribute("RelationType").contains("_OP")){
+                    //continue;
+                }
+                if (r.getAttribute("RelationType").equals("PHYS")) {
+                    double[] scores = comparator.score(r, "");
+                    for (int i = 0; i < scores.length; i++){
+                        avg_is_phys[i] += scores[i];
+                    }
+                    avg_is_phys_counter ++;
+                }
+                else if (r.getAttribute("RelationType").equals("PHYS_OP")){
+                    double[] scores = comparator.score(r, "");
+                    for (int i = 0; i < scores.length; i++){
+                        avg_is_phys_op[i] += scores[i];
+                    }
+                    avg_is_phys_op_counter ++;
+                }
+                else if (!r.getAttribute("RelationType").equals("NOT_RELATED")){
+                    double[] scores = comparator.score(r, "");
+                    for (int i = 0; i < scores.length; i++){
+                        avg_not_phys[i] += scores[i];
+                    }
+                    avg_not_phys_counter ++;
+                }
+                else {
+                    double[] scores = comparator.score(r, "");
+                    for (int i = 0; i < scores.length; i++){
+                        avg_not_rel[i] += scores[i];
+                    }
+                    avg_not_rel_counter ++;
+                }
+
+
+            }
+            for (int i = 0; i < avg_is_phys.length; i++){
+                avg_is_phys[i] = avg_is_phys[i] / (double)avg_is_phys_counter;
+                System.out.print(avg_is_phys[i] + "\t");
+            }
+            System.out.println("\n");
+            for (int i = 0; i < avg_is_phys_op.length; i++){
+                avg_is_phys_op[i] = avg_is_phys_op[i] / (double)avg_is_phys_op_counter;
+                System.out.print(avg_is_phys_op[i] + "\t");
+            }
+            System.out.println("\n");
+            for (int i = 0; i < avg_not_phys.length; i++){
+                avg_not_phys[i] = avg_not_phys[i] / (double)avg_not_phys_counter;
+                System.out.print(avg_not_phys[i] + "\t");
+            }
+            System.out.println("\n");
+            for (int i = 0; i < avg_not_rel.length; i++){
+                avg_not_rel[i] = avg_not_rel[i] / (double)avg_not_rel_counter;
+                System.out.print(avg_not_rel[i] + "\t");
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
     public static void main(String[] args){
-        printPattern();
+       printSimilarities();
     }
 }

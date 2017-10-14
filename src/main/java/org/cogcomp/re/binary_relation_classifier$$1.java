@@ -23,6 +23,11 @@ public class binary_relation_classifier$$1 extends Classifier
   private static final structual_features __structual_features = new structual_features();
   private static final mention_features __mention_features = new mention_features();
   private static final template_features __template_features = new template_features();
+  private static final wordNetFeatures __wordnetFeatures = new wordNetFeatures();
+  private static final gazetteerFeatures __gazetteerFeatures = new gazetteerFeatures();
+  private static final dependency_features __dependency_features = new dependency_features();
+  private static final shallow_parse_features __shallow_parse_features = new shallow_parse_features();
+  private static final patternFeatures __patternFeatures = new patternFeatures();
 
   public binary_relation_classifier$$1()
   {
@@ -50,6 +55,13 @@ public class binary_relation_classifier$$1 extends Classifier
     __result.addFeatures(__structual_features.classify(__example));
     __result.addFeatures(__mention_features.classify(__example));
     __result.addFeatures(__template_features.classify(__example));
+    __result.addFeatures(__dependency_features.classify(__example));
+    __result.addFeatures(__gazetteerFeatures.classify(__example));
+    __result.addFeatures(__patternFeatures.classify(__example));
+    __result.addFeatures(__shallow_parse_features.classify(__example));
+    __result.addFeatures(__wordnetFeatures.classify(__example));
+
+
     return __result;
   }
 
@@ -77,6 +89,11 @@ public class binary_relation_classifier$$1 extends Classifier
     result.add(__structual_features);
     result.add(__mention_features);
     result.add(__template_features);
+    result.add(__dependency_features);
+    result.add(__wordnetFeatures);
+    result.add(__gazetteerFeatures);
+    result.add(__patternFeatures);
+    result.add(__shallow_parse_features);
     return result;
   }
 }

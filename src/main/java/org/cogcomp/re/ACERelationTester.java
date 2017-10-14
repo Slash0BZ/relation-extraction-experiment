@@ -127,7 +127,7 @@ public class ACERelationTester {
         int null_relation_all = 0;
         for (int i = 0; i < 5; i++) {
             //binary_relation_classifier binary_classifier = new binary_relation_classifier("models/binary_classifier_fold_" + i + ".lc",
-                    //"models/binary_classifier_fold_" + i + ".lex");
+              //      "models/binary_classifier_fold_" + i + ".lex");
             fine_relation_label output = new fine_relation_label();
             ACEMentionReader train_parser_from_file = IOHelper.readFiveFold(i, "TRAIN");
             relation_classifier classifier = new relation_classifier();
@@ -236,28 +236,9 @@ public class ACERelationTester {
                     Constituent source = r.getSource();
                     Constituent target = r.getTarget();
                     TextAnnotation ta = source.getTextAnnotation();
-                    List<Constituent> source_coref = new ArrayList<>();
-                    List<Constituent> target_coref = new ArrayList<>();
-                    for (Constituent c : ta.getView(ViewNames.MENTION_ACE).getConstituents()){
-                        if (c.getAttribute("EntityID") != null){
-                            if (c.getAttribute("EntityID").equals(source.getAttribute("EntityID"))){
-                                source_coref.add(c);
-                            }
-                            if (c.getAttribute("EntityID").equals(target.getAttribute("EntityID"))){
-                                target_coref.add(c);
-                            }
-                        }
-                    }
-                    for (Constituent s : source_coref){
-                        for (Constituent t : target_coref){
-                            Relation corefR = new Relation("TEST", s, t, 1.0f);
-                            if (constrainedClassifier.discreteValue(corefR).equals(gold_label)) {
-                                System.out.println(ta.getSentenceFromToken(source.getStartSpan()));
-                                System.out.println("Gold: " + gold_label + " Predicted: " + predicted_label);
-                                System.out.println(s.toString() + " " + t.toString() + " " + constrainedClassifier.discreteValue(corefR));
-                            }
-                        }
-                    }
+                    System.out.println(ta.getSentenceFromToken(source.getStartSpan()));
+                    System.out.println("Gold: " + gold_label + " Predicted: " + predicted_label);
+                    System.out.println(source.toString() + " || " + target.toString());
                     System.out.println();
                 }
                 */
@@ -300,8 +281,6 @@ public class ACERelationTester {
                 }
             }
             classifier.forget();
-            //parser_full.reset();
-            //train_parser.reset();
         }
         /*
         for (String o : outputs){
@@ -334,21 +313,33 @@ public class ACERelationTester {
         Map<String, Integer> cMap = new HashMap<String, Integer>();
         for (int i = 0; i < 5; i++) {
             is_null_label output = new is_null_label();
-/*
-            Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi_test");
+            ACEMentionReader train_parser_from_file = IOHelper.readFiveFold(i, "TRAIN");
+
             binary_relation_classifier classifier = new binary_relation_classifier();
             classifier.setLexiconLocation("models/binary_classifier_fold_" + i + ".lex");
-            BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
-            Lexicon lexicon = trainer.preExtract("models/re/binary_classifier_fold_" + i + ".ex", true);
+            BatchTrainer trainer = new BatchTrainer(classifier, train_parser_from_file);
+            Learner preExtractLearner = trainer.preExtract("models/re/binary_classifier_fold_" + i + ".ex", true, Lexicon.CountPolicy.none);
+            preExtractLearner.saveLexicon();
+            Lexicon lexicon = preExtractLearner.getLexicon();
             classifier.setLexicon(lexicon);
-            trainer.train(1, 1);
+
+            int examples = train_parser_from_file.readList().size();
+            classifier.initialize(examples, preExtractLearner.getLexicon().size());
+            for (Relation r : train_parser_from_file.readList()){
+                classifier.learn(r);
+            }
+            classifier.doneWithRound();
+            classifier.doneLearning();
             classifier.setModelLocation("models/binary_classifier_fold_" + i + ".lc");
             classifier.save();
-*/
+
+/*
             binary_relation_classifier classifier = new binary_relation_classifier("models/binary_classifier_fold_" + i + ".lc",
                     "models/binary_classifier_fold_" + i + ".lex");
-            Parser parser_full = new ACEMentionReader("data/partition/eval/" + i, "relation_full_bi_test");
-            for (Object example = parser_full.next(); example != null; example = parser_full.next()){
+                    */
+            //Parser parser_full = new ACEMentionReader("data/partition_with_dev/eval/" + i, "relation_full_bi_test");
+            ACEMentionReader test_parser_from_file = IOHelper.readFiveFold(i, "TEST");
+            for (Relation example : test_parser_from_file.readList()){
 /*
                 String predicted_label = classifier.discreteValue(example);
                 ScoreSet scores = classifier.scores(example);
@@ -451,41 +442,32 @@ public class ACERelationTester {
         int total_true_labeled = 0;
         int total_true_predicted = 0;
         for (int i = 0; i < 5; i++) {
-            binary_relation_classifier binary_classifier = new binary_relation_classifier("models/binary_classifier_fold_" + i + ".lc",
-                    "models/binary_classifier_fold_" + i + ".lex");
             fine_relation_label output = new fine_relation_label();
-            Parser train_parser = new ACEMentionReader("data/partition/train/" + i, "relation_full_bi_test");
+            ACEMentionReader train_parser_from_file = IOHelper.readFiveFold(i, "TRAIN");
             relation_classifier classifier = new relation_classifier();
-            classifier.setLexiconLocation("models/predicted_relation_classifier_fold_" + i + ".lex");
-            BatchTrainer trainer = new BatchTrainer(classifier, train_parser);
-            Learner preExtractLearner = trainer.preExtract("models/predicted_relation_classifier_fold_" + i + ".ex", true, Lexicon.CountPolicy.none);
+            classifier.setLexiconLocation("models/relation_classifier_fold_" + i + ".lex");
+            BatchTrainer trainer = new BatchTrainer(classifier, train_parser_from_file);
+            Learner preExtractLearner = trainer.preExtract("models/relation_classifier_fold_" + i + ".ex", true, Lexicon.CountPolicy.none);
             preExtractLearner.saveLexicon();
             Lexicon lexicon = preExtractLearner.getLexicon();
             classifier.setLexicon(lexicon);
-            int examples = 0;
-            for (Object example = train_parser.next(); example != null; example = train_parser.next()){
-                examples ++;
-            }
-            train_parser.reset();
+            int examples = train_parser_from_file.readList().size();
             classifier.initialize(examples, preExtractLearner.getLexicon().size());
-            for (Object example = train_parser.next(); example != null; example = train_parser.next()){
-                if (is_null(binary_classifier, example)){
-                    //continue;
-                }
-                classifier.learn(example);
+            for (Relation r : train_parser_from_file.readList()){
+                //if (is_null(binary_classifier, r)){
+                //continue;
+                //}
+                classifier.learn(r);
             }
             classifier.doneWithRound();
             classifier.doneLearning();
+
             ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
             Parser parser_full = new PredictedMentionReader("data/partition/eval/" + i);
             for (Object example = parser_full.next(); example != null; example = parser_full.next()){
                 Relation exampleRelation = (Relation)example;
                 boolean isGold = exampleRelation.getAttribute("IsGoldRelation").equals("True");
                 String predicted_label = constrainedClassifier.discreteValue(example);
-                if (is_null(binary_classifier, example)){
-                    //predicted_label = "NOT_RELATED";
-                    //continue;
-                }
                 if (predicted_label.equals("NOT_RELATED") == false){
                     total_predicted ++;
                     if (isGold){
@@ -511,7 +493,6 @@ public class ACERelationTester {
             }
             classifier.forget();
             parser_full.reset();
-            train_parser.reset();
         }
         System.out.println("Total True labeled: " + total_true_labeled);
         System.out.println("Total True predicted: " + total_true_predicted);
@@ -620,14 +601,18 @@ public class ACERelationTester {
         }
         classifier.doneWithRound();
         classifier.doneLearning();
-        ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
+        //ACERelationConstrainedClassifier constrainedClassifier = new ACERelationConstrainedClassifier(classifier);
 
         Parser parser_full = new PredictedMentionReader("data/partition_with_dev/dev");
         for (Object example = parser_full.next(); example != null; example = parser_full.next()){
             String gold_label = output.discreteValue(example);
-            String predicted_label = constrainedClassifier.discreteValue(example);
-            if (predicted_label.equals("NOT_RELATED") == false){
+            //String predicted_label = constrainedClassifier.discreteValue(example);
+            String predicted_label = classifier.discreteValue(example);
+            if (!predicted_label.equals("NOT_RELATED")){
                 predicted_predicted ++;
+            }
+            if (!gold_label.equals("NOT_RELATED")){
+                labeled ++;
             }
             if (predicted_label.equals(gold_label) && !gold_label.equals("NOT_RELATED")){
                 predicted_correct ++;

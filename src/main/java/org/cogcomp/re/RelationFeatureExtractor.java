@@ -1,5 +1,8 @@
 package org.cogcomp.re;
+import com.sun.org.apache.regexp.internal.RE;
+import edu.illinois.cs.cogcomp.config.SimConfigurator;
 import edu.illinois.cs.cogcomp.core.datastructures.Pair;
+import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.edison.features.helpers.PathFeatureHelper;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 
@@ -7,6 +10,9 @@ import java.util.*;
 import java.lang.*;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
+import edu.illinois.cs.cogcomp.sim.LLMStringSim;
+import edu.illinois.cs.cogcomp.sim.Metric;
+import edu.illinois.cs.cogcomp.sim.NESim;
 import org.cogcomp.md.MentionAnnotator;
 
 
@@ -714,17 +720,17 @@ public class RelationFeatureExtractor {
         if (source.doesConstituentCover(target)){
             ret.add("m2_in_m1");
             ret.add("cb1_" + source.getAttribute("EnityType") + "_" + target.getAttribute("EntityType")+ "_m2_in_m1");
-            ret.add("cb2_" + sourceHead.toString() + "_" + targetHead.toString() + "_m2_in_m1");
+            //ret.add("cb2_" + sourceHead.toString() + "_" + targetHead.toString() + "_m2_in_m1");
         }
         else if (target.doesConstituentCover(source)){
             ret.add("m1_in_m2");
             ret.add("cb1_" + source.getAttribute("EnityType") + "_" + target.getAttribute("EntityType")+ "_m1_in_m2");
-            ret.add("cb2_" + sourceHead.toString() + "_" + targetHead.toString() + "_m1_in_m2");
+            //ret.add("cb2_" + sourceHead.toString() + "_" + targetHead.toString() + "_m1_in_m2");
         }
         else{
             ret.add("m1_m2_no_coverage");
             ret.add("cb1_" + source.getAttribute("EnityType") + "_" + target.getAttribute("EntityType")+ "_m1_m2_no_coverage");
-            ret.add("cb2_" + sourceHead.toString() + "_" + targetHead.toString() + "_m1_m2_no_coverage");
+           // ret.add("cb2_" + sourceHead.toString() + "_" + targetHead.toString() + "_m1_m2_no_coverage");
         }
         return ret;
     }
@@ -760,13 +766,13 @@ public class RelationFeatureExtractor {
             ret.add("mlvl_cont_1_" + source_m_lvl + "_" + target_m_lvl + "_" + "True");
         }
         else{
-            ret.add("mlvl_cont_1_" + source_m_lvl + "_" + target_m_lvl + "_" + "False");
+            //ret.add("mlvl_cont_1_" + source_m_lvl + "_" + target_m_lvl + "_" + "False");
         }
         if (source.doesConstituentCover(target)){
             ret.add("mlvl_cont_2_" + source_m_lvl + "_" + target_m_lvl + "_" + "True");
         }
         else{
-            ret.add("mlvl_cont_2_" + source_m_lvl + "_" + target_m_lvl + "_" + "False");
+            //ret.add("mlvl_cont_2_" + source_m_lvl + "_" + target_m_lvl + "_" + "False");
         }
 
         return ret;
@@ -798,7 +804,7 @@ public class RelationFeatureExtractor {
                     List<Constituent> paths = PathFeatureHelper.getPathConstituents(source_parsed, target_parsed, 100);
                     for (int i = 0; i < paths.size(); i++){
                         Constituent cur = paths.get(i);
-                        ret.add(new Pair(Integer.toString(i), cur.toString()));
+                        //ret.add(new Pair(Integer.toString(i), cur.toString()));
                         ret.add(new Pair("tag_" + i, cur.getLabel()));
                         ret.add(new Pair("pos_tag_" + i, posView.getConstituentsCoveringToken(cur.getStartSpan()).get(0).getLabel()));
                         ret.add(new Pair("wordnettag_" + i, annotatedView.getConstituentsCoveringToken(cur.getStartSpan()).get(0).getAttribute("WORDNETTAG")));
@@ -1123,4 +1129,5 @@ public class RelationFeatureExtractor {
         }
         return new ArrayList<>(ret);
     }
+
 }
