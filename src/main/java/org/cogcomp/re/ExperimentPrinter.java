@@ -277,7 +277,7 @@ public class ExperimentPrinter {
     public static void printSimilarities(){
         try {
             ACEReader aceReader = new ACEReader("data/partition_with_dev/dev", false);
-            List<Relation> examples = IOHelper.serializeRelationsIn("preprocess/relations/PHYS");
+            List<Relation> examples = IOHelper.inputRelationsNonBinary("preprocess/relations/PHYS_non_binary.txt");
             for (Relation r : examples){
                 TextAnnotation ta = r.getSource().getTextAnnotation();
                 Constituent source = r.getSource();
@@ -288,8 +288,12 @@ public class ExperimentPrinter {
                 System.out.println(r.getAttribute("RelationType") + ":" + r.getAttribute("RelationSubtype"));
                 System.out.println(source.toString() + " || " + target.toString());
                 System.out.println(source_head.toString() + " || " + target_head.toString());
+                List<String> fets = Comparator.compareRelationsHelper(r);
+                for (String s : fets){
+                    System.out.println(s);
+                }
             }
-            System.exit(0);
+            //System.exit(0);
             Properties stanfordProps = new Properties();
             stanfordProps.put("annotators", "pos, parse");
             stanfordProps.put("parse.originalDependencies", true);
