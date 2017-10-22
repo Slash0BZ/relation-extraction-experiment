@@ -1,6 +1,5 @@
 package org.cogcomp.re;
 
-import com.sun.org.apache.regexp.internal.RE;
 import edu.illinois.cs.cogcomp.annotation.BasicTextAnnotationBuilder;
 import edu.illinois.cs.cogcomp.core.datastructures.IntPair;
 import edu.illinois.cs.cogcomp.core.datastructures.Pair;
@@ -9,14 +8,17 @@ import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Relation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Sentence;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
-import edu.illinois.cs.cogcomp.lbjava.parse.Parser;
-import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 import edu.illinois.cs.cogcomp.nlp.tokenizer.StatefulTokenizer;
-import org.apache.xmlrpc.webserver.ServletWebServer;
+import edu.illinois.cs.cogcomp.pipeline.common.Stanford331Configurator;
+import edu.illinois.cs.cogcomp.pipeline.handlers.StanfordDepHandler;
+import edu.illinois.cs.cogcomp.pos.POSAnnotator;
+import edu.stanford.nlp.pipeline.POSTaggerAnnotator;
+import edu.stanford.nlp.pipeline.ParserAnnotator;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Created by xuany on 10/6/2017.
@@ -132,7 +134,16 @@ public class IOHelper {
         catch (Exception e){
             e.printStackTrace();
         }
+        Properties stanfordProps = new Properties();
+        stanfordProps.put("annotators", "pos, parse");
+        stanfordProps.put("parse.originalDependencies", true);
+        stanfordProps.put("parse.maxlen", Stanford331Configurator.STFRD_MAX_SENTENCE_LENGTH);
+        stanfordProps.put("parse.maxtime", Stanford331Configurator.STFRD_TIME_PER_SENTENCE);
+        POSTaggerAnnotator posAnnotator = new POSTaggerAnnotator("pos", stanfordProps);
+        ParserAnnotator parseAnnotator = new ParserAnnotator("parse", stanfordProps);
+        StanfordDepHandler stanfordDepHandler = new StanfordDepHandler(posAnnotator, parseAnnotator);
         StatefulTokenizer statefulTokenizer = new StatefulTokenizer(false);
+        POSAnnotator pos = new POSAnnotator();
         for (int i = 0; i < lines.size() / 2; i++){
             String sentence = lines.get(i * 2);
             String arguments = lines.get(i * 2 + 1);
@@ -140,6 +151,13 @@ public class IOHelper {
             List<String[]> tokens = new ArrayList<>();
             tokens.add(tokenizedSentence.getFirst());
             TextAnnotation ta = BasicTextAnnotationBuilder.createTextAnnotationFromTokens(tokens);
+            try {
+                stanfordDepHandler.addView(ta);
+                ta.addView(pos);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
             String[] mentionsRaw = arguments.split(",");
             Pair<Integer, Integer>[] mentionsIdx = new Pair[4];
             for (int j = 0; j < mentionsRaw.length; j++){
@@ -192,6 +210,6 @@ public class IOHelper {
     }
 
     public static void main (String[] args){
-        List<Relation> ret = inputRelationsNonBinary("preprocess/relations/PHYS_no_binary.txt");
+        List<Relation> ret = inputRelationsNonBinary("preprocess/relations/PHYS_MAN_NON_BIN.txt");
     }
 }

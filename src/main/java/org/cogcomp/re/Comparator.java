@@ -1,16 +1,20 @@
 package org.cogcomp.re;
 
-import com.sun.org.apache.regexp.internal.RE;
 import edu.illinois.cs.cogcomp.config.SimConfigurator;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Constituent;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Relation;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TreeView;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.View;
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.edison.features.helpers.PathFeatureHelper;
-import edu.illinois.cs.cogcomp.sim.*;
+import edu.illinois.cs.cogcomp.sim.LLMStringSim;
+import edu.illinois.cs.cogcomp.sim.Metric;
+import edu.illinois.cs.cogcomp.sim.MetricResponse;
+import edu.illinois.cs.cogcomp.sim.WordSim;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -19,7 +23,7 @@ import java.util.List;
 public class Comparator {
     private WordSim wordSim = null;
     private Metric llmStringSim = null;
-    List<Relation> examples = IOHelper.serializeRelationsIn("preprocess/relations/PHYS");
+    List<Relation> examples = IOHelper.inputRelationsNonBinary("preprocess/relations/PHYS_MAN_NON_BIN.txt");
     public Comparator(){
         String config = "config/configurations.properties";
         llmStringSim = new LLMStringSim(config);
@@ -69,6 +73,21 @@ public class Comparator {
         ret.add(p2Word);
         ret.add(p32Word);
         ret.add(source_head.toString() + " " + p32Word + " " + target_head.toString());
+
+        int posStart = Math.min(source_head.getEndSpan(), target_head.getEndSpan());
+        int posEnd = Math.max(source_head.getStartSpan(), target_head.getStartSpan());
+        View posView = source.getTextAnnotation().getView(ViewNames.POS);
+        String[] keep = {"VB", "VBG", "VBD", "VBN", "VBP", "VBZ", "TO", "IN"};
+        List<String> keepList = Arrays.asList(keep);
+        String posPath = source_head + " ";
+        for (int i = posStart; i < posEnd; i++){
+            String curPosLabel = posView.getConstituentsCoveringToken(i).get(0).getLabel();
+            if (keepList.contains(curPosLabel)) {
+                posPath += posView.getConstituentsCoveringToken(i).get(0).toString() + " ";
+            }
+        }
+        posPath += target_head;
+        ret.add(posPath);
         return ret;
     }
 
@@ -104,7 +123,7 @@ public class Comparator {
     }
 
     public double[] compareRelationWithDefs_avg(List<Relation> defs, Relation r){
-        double[] avgs = new double[7];
+        double[] avgs = new double[8];
         for (int i = 0; i < avgs.length; i++){
             avgs[i] = 0.0;
         }
@@ -123,7 +142,7 @@ public class Comparator {
     }
 
     public double[] compareRelationWithDefs_max(List<Relation> defs, Relation r){
-        double[] maxs = new double[7];
+        double[] maxs = new double[8];
         for (int i = 0; i < maxs.length; i++){
             maxs[i] = 0.0;
         }

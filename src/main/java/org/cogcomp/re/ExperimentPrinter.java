@@ -1,23 +1,16 @@
 package org.cogcomp.re;
 
-import com.sun.org.apache.regexp.internal.RE;
-import edu.illinois.cs.cogcomp.annotation.AnnotatorService;
 import edu.illinois.cs.cogcomp.core.datastructures.ViewNames;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.*;
 import edu.illinois.cs.cogcomp.lbjava.learn.BatchTrainer;
 import edu.illinois.cs.cogcomp.lbjava.learn.Learner;
 import edu.illinois.cs.cogcomp.lbjava.learn.Lexicon;
 import edu.illinois.cs.cogcomp.lbjava.parse.Parser;
-import edu.illinois.cs.cogcomp.ner.ExpressiveFeatures.FlatGazetteers;
 import edu.illinois.cs.cogcomp.nlp.corpusreaders.ACEReader;
 import edu.illinois.cs.cogcomp.pipeline.common.Stanford331Configurator;
 import edu.illinois.cs.cogcomp.pipeline.handlers.StanfordDepHandler;
-import edu.illinois.cs.cogcomp.pipeline.main.PipelineFactory;
-import edu.illinois.cs.cogcomp.pos.POSAnnotator;
 import edu.stanford.nlp.pipeline.POSTaggerAnnotator;
 import edu.stanford.nlp.pipeline.ParserAnnotator;
-import org.apache.xmlrpc.webserver.ServletWebServer;
-import org.cogcomp.md.MentionAnnotator;
 
 import java.util.*;
 
@@ -277,7 +270,7 @@ public class ExperimentPrinter {
     public static void printSimilarities(){
         try {
             ACEReader aceReader = new ACEReader("data/partition_with_dev/dev", false);
-            List<Relation> examples = IOHelper.inputRelationsNonBinary("preprocess/relations/PHYS_non_binary.txt");
+            List<Relation> examples = IOHelper.inputRelationsNonBinary("preprocess/relations/PHYS_MAN_NON_BIN.txt");
             for (Relation r : examples){
                 TextAnnotation ta = r.getSource().getTextAnnotation();
                 Constituent source = r.getSource();
@@ -303,24 +296,25 @@ public class ExperimentPrinter {
             ParserAnnotator parseAnnotator = new ParserAnnotator("parse", stanfordProps);
             StanfordDepHandler stanfordDepHandler = new StanfordDepHandler(posAnnotator, parseAnnotator);
             Comparator comparator = new Comparator();
-            double[] avg_is_phys = new double[14];
+            double[] avg_is_phys = new double[16];
             for (int i = 0; i < avg_is_phys.length; i++){
                 avg_is_phys[i] = 0.0;
             }
             int avg_is_phys_counter = 0;
-            double[] avg_is_phys_op = new double[14];
+            double[] avg_is_phys_op = new double[16];
             for (int i = 0; i < avg_is_phys_op.length; i++){
                 avg_is_phys_op[i] = 0.0;
             }
             int avg_is_phys_op_counter = 0;
-            double[] avg_not_phys = new double[14];
+            double[] avg_not_phys = new double[16];
             for (int i = 0; i < avg_not_phys.length; i++){
                 avg_not_phys[i] = 0.0;
             }
             int avg_not_phys_counter = 0;
-            double[] avg_not_rel = new double[14];
+            double[] avg_not_rel = new double[16];
             int avg_not_rel_counter = 0;
             ACEMentionReader aceMentionReader = IOHelper.serializeDataIn("preprocess/reader/dev");
+            List<Relation> printList = new ArrayList<>();
             for (Relation r : aceMentionReader.readList()){
 
                 if (r.getAttribute("RelationType").contains("PHYS")){
@@ -369,6 +363,9 @@ public class ExperimentPrinter {
                     for (int i = 0; i < scores.length; i++){
                         avg_not_rel[i] += scores[i];
                     }
+                    if (scores[7] > 0.1 && scores[15] > 0.5){
+                        printList.add(r);
+                    }
                     avg_not_rel_counter ++;
                 }
 
@@ -392,6 +389,9 @@ public class ExperimentPrinter {
             for (int i = 0; i < avg_not_rel.length; i++){
                 avg_not_rel[i] = avg_not_rel[i] / (double)avg_not_rel_counter;
                 System.out.print(avg_not_rel[i] + "\t");
+            }
+            for (Relation r : printList){
+                IOHelper.printRelation(r);
             }
         }
         catch (Exception e){
